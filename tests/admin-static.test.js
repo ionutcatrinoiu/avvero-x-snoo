@@ -19,3 +19,17 @@ test('public registration remains wired to existing API',()=>{
  assert.ok(h.includes("fetch('/api/register'"));
  assert.ok(a.includes("collection('snoo_registrations')"));
 });
+
+test('Excel export is real XLSX with explicit quiz question headers',()=>{
+ const h=fs.readFileSync('admin/index.html','utf8');
+ const p=JSON.parse(fs.readFileSync('package.json','utf8'));
+ assert.ok(fs.existsSync('api/admin/export.js'),'api/admin/export.js missing');
+ assert.ok(p.dependencies.xlsx,'xlsx dependency missing');
+ assert.ok(h.includes("fetch('/api/admin/export'"),'admin must fetch XLSX endpoint');
+ assert.ok(!h.includes("type:'text/csv"),'legacy CSV export still present');
+ const e=fs.readFileSync('api/admin/export.js','utf8');
+ assert.ok(e.includes('Folosește soluții pentru gestionarea miopiei?'));
+ assert.ok(e.includes('Cunoaște Myoless?'));
+ assert.ok(e.includes('Ora înscrierii'));
+ assert.ok(e.includes('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'));
+});

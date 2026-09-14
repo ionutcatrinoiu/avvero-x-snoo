@@ -261,34 +261,45 @@ html,body,button,input,textarea,select,
 
 <style>
 @media(max-width:760px){
-  body.keyboard-open .nav{
-    position:fixed!important;
-    left:20px!important;
-    right:20px!important;
-    bottom:calc(var(--keyboard-height,0px) + 8px)!important;
-    z-index:10050!important;
+  .step:has(.field) .nav{
+    position:absolute!important;
+    right:0!important;
+    left:auto!important;
+    bottom:auto!important;
+    top:50%!important;
+    transform:translateY(34px)!important;
+    width:46px!important;
+    height:46px!important;
     padding:0!important;
+    margin:0!important;
     background:transparent!important;
+    z-index:20!important;
   }
-  body.keyboard-open .nav button{
-    width:100%!important;
-    min-width:0!important;
-    min-height:48px!important;
+  .step:has(.field) .nav button{
+    width:46px!important;
+    height:46px!important;
+    min-width:46px!important;
+    min-height:46px!important;
+    padding:0!important;
+    border-radius:50%!important;
+    background:transparent!important;
+    border:2px solid #172426!important;
+    color:#172426!important;
+    font-size:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    box-shadow:none!important;
   }
+  .step:has(.field) .nav button:after{
+    content:"→";
+    font-family:"Source Sans 3","Source Sans Pro",Arial,Helvetica,sans-serif;
+    font-size:25px;
+    line-height:1;
+    font-weight:600;
+    transform:translateY(-1px);
+  }
+  .step:has(.field){position:relative!important}
+  .step:has(.field) .field{padding-right:58px!important}
 }
 </style>
-<script>
-(function(){
-  if(!window.visualViewport) return;
-  const vv=window.visualViewport;
-  function updateKeyboardButton(){
-    const kh=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
-    const open=kh>120;
-    document.documentElement.style.setProperty('--keyboard-height',kh+'px');
-    document.body.classList.toggle('keyboard-open',open);
-  }
-  vv.addEventListener('resize',updateKeyboardButton);
-  vv.addEventListener('scroll',updateKeyboardButton);
-  updateKeyboardButton();
-})();
-</script>

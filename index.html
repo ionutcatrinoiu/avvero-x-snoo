@@ -38,7 +38,7 @@ let body=x[5]==='q1'
  :x[5]==='q2'
  ?`<div class="answers"><button class="answer" onclick="pick('Da',this)">Da, cunosc Myoless</button><button class="answer" onclick="pick('Nu',this)">Nu încă. Vreau să îl descopăr.</button></div>`
  :x[5]==='role'
- ?`<div class="answers role-answers"><button class="answer" onclick="pick('Medic oftalmolog',this)">Medic oftalmolog</button><button class="answer" onclick="pick('Optometrist',this)">Optometrist</button><button class="answer" onclick="pick('Administrator',this)">Administrator</button><button class="answer" onclick="pick('Consilier vânzări',this)">Consilier vânzări</button></div>`
+ ?`<div class="answers role-answers"><button class="answer" onclick="pick('Medic oftalmolog',this)">Medic oftalmolog</button><button class="answer" onclick="pick('Optometrist',this)">Optometrist</button><button class="answer" onclick="pick('Administrator',this)">Administrator</button><button class="answer" onclick="pick('Consilier vânzări',this)">Consilier vânzări</button><button class="answer" onclick="pick('Altul',this)">Altul</button></div>`
  :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" placeholder="${x[4]}" value="${esc(S[x[3]])}"><div class="err" id="err"></div>`;
 let choice=x[5]==='role'||x[5][0]==='q';
 let inlineAction=choice?'':`<button class="inline-next" type="button" onclick="next()" aria-label="Continuă">→</button>`;
@@ -582,5 +582,22 @@ html,body,button,input,textarea,select,
    position:absolute!important;left:0!important;bottom:38px!important;
    margin:0!important;z-index:20!important
  }
+}
+</style>
+<style>
+/* SNOO button label readability refinement */
+.go{
+  font-size:14px!important;
+  font-weight:600!important;
+  letter-spacing:.13em!important;
+}
+.action-primary,.gdpr-nav .action-primary{
+  font-size:13px!important;
+  font-weight:600!important;
+  letter-spacing:.13em!important;
+}
+@media(max-width:760px){
+  .go{font-size:13px!important;letter-spacing:.11em!important}
+  .action-primary,.gdpr-nav .action-primary{font-size:12px!important;letter-spacing:.11em!important}
 }
 </style>

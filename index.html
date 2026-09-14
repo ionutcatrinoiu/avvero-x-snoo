@@ -40,7 +40,22 @@ h1{font-size:clamp(52px,5.45vw,84px);font-weight:700;line-height:.97;letter-spac
 
 
 <script>
-const S={gdpr:false,first:'',last:'',phone:'',email:'',optic:'',role:'',city:'',county:'',street:'',myopia:'',myoless:''};let n=0,lock=false;const A=[['IDENTITATE','Care este prenumele tău?','Începem cu tine.','first','Prenume','text'],['IDENTITATE','Care este numele tău?','Completează numele de familie.','last','Nume','text'],['CONTACT','Lasă-ne numărul tău de telefon','Pentru a afla detalii despre prezentare.','phone','07xx xxx xxx','tel'],['CONTACT','Adresa ta de e-mail','Opțional. O poți lăsa necompletată.','email','nume@exemplu.ro','email'],['OPTICA TA','Ce optică reprezinți?','Denumirea opticii medicale.','optic','Denumirea opticii','text'],['OPTICA TA','Care este rolul tău în optică?','Selectează rolul care te reprezintă.','role','','role'],['LOCAȚIE','În ce oraș se află optica?','Construim adresa pas cu pas.','city','Oraș','text'],['LOCAȚIE','În ce județ?','Județul în care se află optica.','county','Județ','text'],['LOCAȚIE','Strada și număr','Introdu strada și numărul imobilului.','street','Ex. Strada Republicii 25','text'],['PERSPECTIVĂ','Cum abordați miopia?','Folosiți soluții dedicate pentru gestionarea miopiei?','myopia','','q1'],['MYOLESS','Cât de familiar îți este Myoless?','Alege formularea care te reprezintă.','myoless','','q2']];function norm(s){return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}function buc(s){return norm(s)==='bucuresti'}function ph(v){let d=v.replace(/\D/g,'');if(d.startsWith('0040'))d=d.slice(2);if(d.startsWith('40'))d='0'+d.slice(2);return /^07\d{8}$/.test(d)}function cap(v){return String(v).trim().toLocaleLowerCase('ro-RO').replace(/(^|[\s\-'])\p{L}/gu,m=>m.toLocaleUpperCase('ro-RO'))}function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}function start(){flow.classList.add('open');n=0;render()}function render(){
+const S={gdpr:false,first:'',last:'',phone:'',email:'',optic:'',role:'',city:'',county:'',street:'',myopia:'',myoless:''};let n=0,lock=false;
+const COUNTY_BY_CODE={AB:'Alba',AR:'Arad',AG:'Argeș',BC:'Bacău',BH:'Bihor',BN:'Bistrița-Năsăud',BT:'Botoșani',BR:'Brăila',BV:'Brașov',B:'București',BZ:'Buzău',CL:'Călărași',CS:'Caraș-Severin',CJ:'Cluj',CT:'Constanța',CV:'Covasna',DB:'Dâmbovița',DJ:'Dolj',GL:'Galați',GR:'Giurgiu',GJ:'Gorj',HR:'Harghita',HD:'Hunedoara',IL:'Ialomița',IS:'Iași',IF:'Ilfov',MM:'Maramureș',MH:'Mehedinți',MS:'Mureș',NT:'Neamț',OT:'Olt',PH:'Prahova',SJ:'Sălaj',SM:'Satu Mare',SB:'Sibiu',SV:'Suceava',TR:'Teleorman',TM:'Timiș',TL:'Tulcea',VL:'Vâlcea',VS:'Vaslui',VN:'Vrancea'};
+let RO_CITIES=[],CITY_INDEX=new Map(),localitiesReady=false,localitiesFailed=false;
+let transitionDir='forward',touchStartX=0,touchStartY=0,touchStartedAt=0;
+function cityKey(v){return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ș/g,'s').replace(/ț/g,'t')}
+function parseCityRow(r){
+ const name=r.nume||r.name||r.oras||r.city||''; const code=String(r.judet||r.county||r.judetAuto||r.countyCode||'').toUpperCase();
+ const county=COUNTY_BY_CODE[code]||r.judetNume||r.countyName||(code==='-'?'București':'');
+ return name?{name,county:cityKey(name)==='bucuresti'?'București':county}:null;
+}
+async function loadRomaniaCities(){
+ try{const r=await fetch('https://andreitripon.github.io/lista-oraselor/dist/json/lista-oraselor.json',{cache:'force-cache'});if(!r.ok)throw new Error('cities');const raw=await r.json();const rows=Array.isArray(raw)?raw:(raw.data||raw.orase||[]);RO_CITIES=rows.map(parseCityRow).filter(x=>x&&x.county);CITY_INDEX=new Map(RO_CITIES.map(x=>[cityKey(x.name),x]));localitiesReady=RO_CITIES.length>250;if(!localitiesReady)throw new Error('cities');}
+ catch(e){localitiesFailed=true;console.error('Lista orașelor nu a putut fi încărcată',e)}
+}
+loadRomaniaCities();
+const A=[['IDENTITATE','Care este prenumele tău?','Începem cu tine.','first','Prenume','text'],['IDENTITATE','Care este numele tău?','Completează numele de familie.','last','Nume','text'],['CONTACT','Lasă-ne numărul tău de telefon','Pentru a afla detalii despre prezentare.','phone','07xx xxx xxx','tel'],['CONTACT','Adresa ta de e-mail','Opțional. O poți lăsa necompletată.','email','nume@exemplu.ro','email'],['OPTICA TA','Ce optică reprezinți?','Denumirea opticii medicale.','optic','Denumirea opticii','text'],['OPTICA TA','Care este rolul tău în optică?','Selectează rolul care te reprezintă.','role','','role'],['LOCAȚIE','În ce oraș se află optica?','Construim adresa pas cu pas.','city','Oraș','text'],['LOCAȚIE','În ce județ?','Județul în care se află optica.','county','Județ','text'],['LOCAȚIE','Strada și număr','Introdu strada și numărul imobilului.','street','Stradă, număr','text'],['PERSPECTIVĂ','Cum abordați miopia?','Folosiți soluții dedicate pentru gestionarea miopiei?','myopia','','q1'],['MYOLESS','Cât de familiar îți este Myoless?','Alege formularea care te reprezintă.','myoless','','q2']];function norm(s){return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}function buc(s){return norm(s)==='bucuresti'}function ph(v){let d=v.replace(/\D/g,'');if(d.startsWith('0040'))d=d.slice(2);if(d.startsWith('40'))d='0'+d.slice(2);return /^07\d{8}$/.test(d)}function cap(v){return String(v).trim().toLocaleLowerCase('ro-RO').replace(/(^|[\s\-'])\p{L}/gu,m=>m.toLocaleUpperCase('ro-RO'))}function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}function start(){flow.classList.add('open');n=0;render()}function render(){
 lock=false;
 let sk=buc(S.city),total=sk?10:11;
 if(!S.gdpr){
@@ -59,10 +74,10 @@ let body=x[5]==='q1'
  ?`<div class="answers"><button class="answer" onclick="pick('Da',this)">Da, cunosc Myoless</button><button class="answer" onclick="pick('Nu',this)">Nu încă. Vreau să îl descopăr.</button></div>`
  :x[5]==='role'
  ?`<div class="answers role-answers"><button class="answer" onclick="pick('Medic oftalmolog',this)">Medic oftalmolog</button><button class="answer" onclick="pick('Optometrist',this)">Optometrist</button><button class="answer" onclick="pick('Administrator',this)">Administrator</button><button class="answer" onclick="pick('Consilier vânzări',this)">Consilier vânzări</button><button class="answer" onclick="pick('Altul',this)">Altul</button></div>`
- :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" placeholder="${x[4]}" value="${esc(S[x[3]])}"><div class="err" id="err"></div>`;
+ :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" placeholder="${x[4]}" value="${esc(S[x[3]])}" ${x[3]==='city'?'list="cityList" autocomplete="off"':x[3]==='county'?'list="countyList" autocomplete="off"':''}>${x[3]==='city'?'<datalist id="cityList">'+RO_CITIES.map(c=>'<option value="'+esc(c.name)+'"></option>').join('')+'</datalist>':x[3]==='county'?'<datalist id="countyList">'+Object.values(COUNTY_BY_CODE).filter(c=>c!=='București').map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>':''}<div class="err" id="err"></div>`;
 let choice=x[5]==='role'||x[5][0]==='q';
 let inlineAction=choice?'':`<button class="inline-next" type="button" onclick="next()" aria-label="Continuă">→</button>`;
-box.innerHTML=`<section class="step"><small>${x[0]}</small><h2>${x[1]}</h2><p>${x[2]}</p><div class="field-row">${body}${inlineAction}</div></section>`;
+box.innerHTML=`<section class="step ${transitionDir==='back'?'from-up':''}"><small>${x[0]}</small><h2>${x[1]}</h2><p>${x[2]}</p><div class="field-row">${body}${inlineAction}</div><div class="swipe-hint">Glisează în sus <span>↑</span></div></section>`;
 nav.innerHTML=choice?'':'<button class="action-primary" onclick="next()">CONTINUĂ →</button>';
 if(window.field){setTimeout(()=>field.focus(),200);field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();next(true)}}}
 }
@@ -71,7 +86,16 @@ function acceptGdpr(){
  if(!c||!c.checked){document.getElementById('gdprErr').textContent='Bifează acordul pentru a continua.';return}
  S.gdpr=true;render();
 }
-function move(cb){if(lock)return;lock=true;box.querySelector('.step').classList.add('out');setTimeout(()=>{cb();render()},250)}function next(keepKeyboard=false){let x=A[n],v=field.value.trim();if(!v&&x[3]!=='email'){err.textContent='Completează acest câmp pentru a continua.';return}if(x[3]==='email'&&v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){err.textContent='Introdu o adresă de e-mail validă sau lasă câmpul gol.';return}if(x[3]==='phone'&&!ph(v)){err.textContent='Introdu un număr mobil din România.';return}S[x[3]]=(x[3]==='first'||x[3]==='last'||x[3]==='optic'||x[3]==='city'||x[3]==='county'||x[3]==='street')?cap(v):v;
+function move(cb,dir='forward'){if(lock)return;lock=true;transitionDir=dir;const step=box.querySelector('.step');if(step)step.classList.add(dir==='back'?'out-down':'out');setTimeout(()=>{cb();render()},250)}function next(keepKeyboard=false){let x=A[n],v=field.value.trim();if(!v&&x[3]!=='email'){err.textContent='Completează acest câmp pentru a continua.';return}if(x[3]==='email'&&v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){err.textContent='Introdu o adresă de e-mail validă sau lasă câmpul gol.';return}if(x[3]==='phone'&&!ph(v)){err.textContent='Introdu un număr mobil din România.';return}
+if(x[3]==='city'){
+ if(!localitiesReady){err.textContent=localitiesFailed?'Lista orașelor nu s-a putut încărca. Reîncarcă pagina.':'Se încarcă lista orașelor. Încearcă din nou într-o secundă.';return}
+ const c=CITY_INDEX.get(cityKey(v));if(!c){err.textContent='Selectează un oraș real din România din lista afișată.';return}v=c.name;S.city=c.name;if(c.county)S.county=c.county;
+}
+if(x[3]==='county'){
+ const allowed=Object.values(COUNTY_BY_CODE).filter(c=>c!=='București');const match=allowed.find(c=>cityKey(c)===cityKey(v));if(!match){err.textContent='Selectează un județ din România din lista afișată.';return}
+ const selected=CITY_INDEX.get(cityKey(S.city));if(selected&&selected.county&&cityKey(match)!==cityKey(selected.county)){err.textContent='Județul nu corespunde orașului selectat.';return}v=match;
+}
+S[x[3]]=(x[3]==='first'||x[3]==='last'||x[3]==='optic'||x[3]==='city'||x[3]==='county'||x[3]==='street')?cap(v):v;
 let advance=()=>{if(x[3]==='city'&&buc(v)){S.county='București';n+=2}else n++};
 if(keepKeyboard){
   advance();render();
@@ -79,7 +103,7 @@ if(keepKeyboard){
   if(nf){nf.focus({preventScroll:true})}
 }else{
   move(advance)
-}}function back(){move(()=>{if(n===8&&buc(S.city))n-=2;else n--})}function pick(v,b){if(lock)return;S[A[n][3]]=v;b.classList.add('sel');lock=true;setTimeout(()=>{n++;render()},520)}
+}}function back(){if(lock||!S.gdpr||n<=0)return;const current=A[n];const f=document.getElementById('field');if(current&&f)S[current[3]]=f.value.trim();move(()=>{if(n===8&&buc(S.city))n-=2;else n--},'back')}function pick(v,b){if(lock)return;S[A[n][3]]=v;b.classList.add('sel');lock=true;setTimeout(()=>{n++;render()},520)}
 let registrationSubmitted=false;
 function registrationPayload(){return {
  firstName:S.first,lastName:S.last,phone:S.phone,email:S.email||null,
@@ -88,6 +112,22 @@ function registrationPayload(){return {
  usesMyopiaManagement:S.myopia,knowsMyoless:S.myoless,
  gdprConsent:true,event:'SNOO 2026'
 }}
+function mobileSwipeEnabled(){return window.matchMedia('(max-width:760px)').matches&&flow.classList.contains('open')&&S.gdpr&&n>=0&&n<11}
+flow.addEventListener('touchstart',e=>{
+ if(!mobileSwipeEnabled()||e.touches.length!==1)return;
+ const t=e.touches[0];touchStartX=t.clientX;touchStartY=t.clientY;touchStartedAt=Date.now();
+},{passive:true});
+flow.addEventListener('touchend',e=>{
+ if(!mobileSwipeEnabled()||!touchStartedAt||!e.changedTouches.length)return;
+ const t=e.changedTouches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY,elapsed=Date.now()-touchStartedAt;
+ touchStartedAt=0;
+ if(elapsed>900||Math.abs(dy)<70||Math.abs(dy)<Math.abs(dx)*1.25)return;
+ if(dy<0){
+   const kind=A[n]&&A[n][5];
+   if(kind==='role'||kind==='q1'||kind==='q2')return;
+   next();
+ }else back();
+},{passive:true});
 async function submitRegistration(){
  if(registrationSubmitted)throw new Error('SUBMIT_IN_PROGRESS');
  registrationSubmitted=true;
@@ -148,6 +188,18 @@ if(bgv){bgv.muted=true;bgv.defaultMuted=true;bgv.playsInline=true;const playBg=(
 })();
 </script>
 
+<style>
+.swipe-hint{display:none}
+@keyframes inFromUp{from{opacity:0;filter:blur(8px);transform:translateY(-22px)}to{opacity:1;filter:none;transform:none}}
+.step.from-up{animation:inFromUp .55s cubic-bezier(.16,1,.3,1)}
+.step.out-down{animation:outDown .22s ease forwards}
+@keyframes outDown{to{opacity:0;filter:blur(7px);transform:translateY(16px)}}
+@media(max-width:760px){
+  .inline-next{display:none!important}
+  .swipe-hint{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:30px;color:#718082;font-size:12px;font-weight:600;letter-spacing:.08em;user-select:none}
+  .swipe-hint span{font-size:18px;line-height:1}
+}
+</style>
 </body></html>
 <style>
 .bg,#ytbg,

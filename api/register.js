@@ -2,9 +2,13 @@ const admin=require('firebase-admin');
 
 function db(){
  if(!admin.apps.length){
-  const raw=process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if(!raw) throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is not configured');
-  admin.initializeApp({credential:admin.credential.cert(JSON.parse(raw))});
+  const fs=require('fs');
+  const path='/tmp/snoo-firebase-runtime.json';
+  const raw=process.env.SNOO_FIREBASE_ADMIN_CONFIG;
+  if(!raw) throw new Error('SNOO_FIREBASE_ADMIN_CONFIG is not configured');
+  if(!fs.existsSync(path)) fs.writeFileSync(path,raw,{encoding:'utf8',mode:0o600});
+  process.env.GOOGLE_APPLICATION_CREDENTIALS=path;
+  admin.initializeApp();
  }
  return admin.firestore();
 }

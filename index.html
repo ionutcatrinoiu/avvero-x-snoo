@@ -43,7 +43,7 @@ h1{font-size:clamp(52px,5.45vw,84px);font-weight:700;line-height:.97;letter-spac
 const S={gdpr:false,first:'',last:'',phone:'',email:'',optic:'',role:'',city:'',county:'',street:'',myopia:'',myoless:''};let n=0,lock=false;
 const COUNTY_BY_CODE={AB:'Alba',AR:'Arad',AG:'Argeș',BC:'Bacău',BH:'Bihor',BN:'Bistrița-Năsăud',BT:'Botoșani',BR:'Brăila',BV:'Brașov',B:'București',BZ:'Buzău',CL:'Călărași',CS:'Caraș-Severin',CJ:'Cluj',CT:'Constanța',CV:'Covasna',DB:'Dâmbovița',DJ:'Dolj',GL:'Galați',GR:'Giurgiu',GJ:'Gorj',HR:'Harghita',HD:'Hunedoara',IL:'Ialomița',IS:'Iași',IF:'Ilfov',MM:'Maramureș',MH:'Mehedinți',MS:'Mureș',NT:'Neamț',OT:'Olt',PH:'Prahova',SJ:'Sălaj',SM:'Satu Mare',SB:'Sibiu',SV:'Suceava',TR:'Teleorman',TM:'Timiș',TL:'Tulcea',VL:'Vâlcea',VS:'Vaslui',VN:'Vrancea'};
 let RO_CITIES=[],CITY_INDEX=new Map(),localitiesReady=false,localitiesFailed=false;
-let transitionDir='forward',touchStartX=0,touchStartY=0,touchStartedAt=0;
+let transitionDir='forward',touchStartX=0,touchStartY=0,touchStartedAt=0,touchDragging=false,swipeNavigation=false;
 function cityKey(v){return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ș/g,'s').replace(/ț/g,'t')}
 function parseCityRow(r){
  const name=r.nume||r.name||r.oras||r.city||''; const code=String(r.judet||r.county||r.judetAuto||r.countyCode||'').toUpperCase();
@@ -77,7 +77,7 @@ let body=x[5]==='q1'
  :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" placeholder="${x[4]}" value="${esc(S[x[3]])}" ${x[3]==='city'?'list="cityList" autocomplete="off"':x[3]==='county'?'list="countyList" autocomplete="off"':''}>${x[3]==='city'?'<datalist id="cityList">'+RO_CITIES.map(c=>'<option value="'+esc(c.name)+'"></option>').join('')+'</datalist>':x[3]==='county'?'<datalist id="countyList">'+Object.values(COUNTY_BY_CODE).filter(c=>c!=='București').map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>':''}<div class="err" id="err"></div>`;
 let choice=x[5]==='role'||x[5][0]==='q';
 let inlineAction=choice?'':`<button class="inline-next" type="button" onclick="next()" aria-label="Continuă">→</button>`;
-box.innerHTML=`<section class="step ${transitionDir==='back'?'from-up':''}"><small>${x[0]}</small><h2>${x[1]}</h2><p>${x[2]}</p><div class="field-row">${body}${inlineAction}</div><div class="swipe-hint">Glisează în sus <span>↑</span></div></section>`;
+box.innerHTML=`<section class="step ${transitionDir==='back'?'from-up':''}"><small>${x[0]}</small><h2>${x[1]}</h2><p>${x[2]}</p><div class="field-row">${body}${inlineAction}</div><div class="swipe-hint">Glisează în sus</div></section>`;
 nav.innerHTML=choice?'':'<button class="action-primary" onclick="next()">CONTINUĂ →</button>';
 if(window.field){setTimeout(()=>field.focus(),200);field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();next(true)}}}
 }
@@ -86,7 +86,7 @@ function acceptGdpr(){
  if(!c||!c.checked){document.getElementById('gdprErr').textContent='Bifează acordul pentru a continua.';return}
  S.gdpr=true;render();
 }
-function move(cb,dir='forward'){if(lock)return;lock=true;transitionDir=dir;const step=box.querySelector('.step');if(step)step.classList.add(dir==='back'?'out-down':'out');setTimeout(()=>{cb();render()},250)}function next(keepKeyboard=false){let x=A[n],v=field.value.trim();if(!v&&x[3]!=='email'){err.textContent='Completează acest câmp pentru a continua.';return}if(x[3]==='email'&&v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){err.textContent='Introdu o adresă de e-mail validă sau lasă câmpul gol.';return}if(x[3]==='phone'&&!ph(v)){err.textContent='Introdu un număr mobil din România.';return}
+function move(cb,dir='forward'){if(lock)return;lock=true;transitionDir=dir;const step=box.querySelector('.step');if(swipeNavigation){swipeNavigation=false;cb();render();return}if(step)step.classList.add(dir==='back'?'out-down':'out');setTimeout(()=>{cb();render()},250)}function next(keepKeyboard=false){let x=A[n],v=field.value.trim();if(!v&&x[3]!=='email'){err.textContent='Completează acest câmp pentru a continua.';return}if(x[3]==='email'&&v&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){err.textContent='Introdu o adresă de e-mail validă sau lasă câmpul gol.';return}if(x[3]==='phone'&&!ph(v)){err.textContent='Introdu un număr mobil din România.';return}
 if(x[3]==='city'){
  if(!localitiesReady){err.textContent=localitiesFailed?'Lista orașelor nu s-a putut încărca. Reîncarcă pagina.':'Se încarcă lista orașelor. Încearcă din nou într-o secundă.';return}
  const c=CITY_INDEX.get(cityKey(v));if(!c){err.textContent='Selectează un oraș real din România din lista afișată.';return}v=c.name;S.city=c.name;if(c.county)S.county=c.county;
@@ -115,18 +115,38 @@ function registrationPayload(){return {
 function mobileSwipeEnabled(){return window.matchMedia('(max-width:760px)').matches&&flow.classList.contains('open')&&S.gdpr&&n>=0&&n<11}
 flow.addEventListener('touchstart',e=>{
  if(!mobileSwipeEnabled()||e.touches.length!==1)return;
- const t=e.touches[0];touchStartX=t.clientX;touchStartY=t.clientY;touchStartedAt=Date.now();
+ const t=e.touches[0];touchStartX=t.clientX;touchStartY=t.clientY;touchStartedAt=Date.now();touchDragging=false;
+ const step=box.querySelector('.step');if(step){step.classList.add('swipe-drag');step.style.transition='none'}
 },{passive:true});
+flow.addEventListener('touchmove',e=>{
+ if(!mobileSwipeEnabled()||!touchStartedAt||e.touches.length!==1)return;
+ const t=e.touches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
+ if(Math.abs(dy)<10||Math.abs(dy)<Math.abs(dx)*1.15)return;
+ touchDragging=true;
+ const step=box.querySelector('.step');if(!step)return;
+ const travel=Math.max(-150,Math.min(150,dy*.62));
+ step.style.transform=`translate3d(0,${travel}px,0)`;
+ step.style.opacity=String(Math.max(.58,1-Math.abs(travel)/420));
+ e.preventDefault();
+},{passive:false});
 flow.addEventListener('touchend',e=>{
  if(!mobileSwipeEnabled()||!touchStartedAt||!e.changedTouches.length)return;
  const t=e.changedTouches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY,elapsed=Date.now()-touchStartedAt;
  touchStartedAt=0;
- if(elapsed>900||Math.abs(dy)<70||Math.abs(dy)<Math.abs(dx)*1.25)return;
+ const step=box.querySelector('.step');
+ const valid=touchDragging&&elapsed<=1100&&Math.abs(dy)>=64&&Math.abs(dy)>=Math.abs(dx)*1.2;
+ touchDragging=false;
+ if(step){step.style.transition='transform 180ms cubic-bezier(.22,1,.36,1),opacity 160ms ease';step.style.transform='translate3d(0,0,0)';step.style.opacity='1'}
+ if(!valid)return;
  if(dy<0){
    const kind=A[n]&&A[n][5];
    if(kind==='role'||kind==='q1'||kind==='q2')return;
-   next();
- }else back();
+   swipeNavigation=true;next();
+ }else{swipeNavigation=true;back()}
+},{passive:true});
+flow.addEventListener('touchcancel',()=>{
+ touchStartedAt=0;touchDragging=false;
+ const step=box.querySelector('.step');if(step){step.style.transition='transform 180ms cubic-bezier(.22,1,.36,1),opacity 160ms ease';step.style.transform='translate3d(0,0,0)';step.style.opacity='1'}
 },{passive:true});
 async function submitRegistration(){
  if(registrationSubmitted)throw new Error('SUBMIT_IN_PROGRESS');
@@ -196,8 +216,8 @@ if(bgv){bgv.muted=true;bgv.defaultMuted=true;bgv.playsInline=true;const playBg=(
 @keyframes outDown{to{opacity:0;filter:blur(7px);transform:translateY(16px)}}
 @media(max-width:760px){
   .inline-next{display:none!important}
-  .swipe-hint{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:30px;color:#718082;font-size:12px;font-weight:600;letter-spacing:.08em;user-select:none}
-  .swipe-hint span{font-size:18px;line-height:1}
+  .swipe-hint{display:flex;position:fixed;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom));z-index:30;align-items:center;justify-content:center;margin:0;color:#718082;font-size:12px;font-weight:600;letter-spacing:.08em;user-select:none;pointer-events:none}
+  .step.swipe-drag{animation:none!important;filter:none!important;will-change:transform,opacity;backface-visibility:hidden}
 }
 </style>
 </body></html>

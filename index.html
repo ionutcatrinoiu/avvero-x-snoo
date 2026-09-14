@@ -20,9 +20,9 @@ h1{font-size:clamp(52px,5.45vw,84px);font-weight:700;line-height:.97;letter-spac
 
 
 <script>
-const S={gdpr:false,first:'',last:'',phone:'',email:'',optic:'',role:'',city:'',county:'',street:'',number:'',myopia:'',myoless:''};let n=0,lock=false;const A=[['IDENTITATE','Care este prenumele tău?','Începem cu tine.','first','Prenume','text'],['IDENTITATE','Care este numele tău?','Completează numele de familie.','last','Nume','text'],['CONTACT','Lasă-ne numărul tău de telefon','Pentru a afla detalii despre prezentare.','phone','07xx xxx xxx','tel'],['CONTACT','Adresa ta de e-mail','Opțional. O poți lăsa necompletată.','email','nume@exemplu.ro','email'],['OPTICA TA','Ce optică reprezinți?','Denumirea opticii medicale.','optic','Denumirea opticii','text'],['OPTICA TA','Care este rolul tău în optică?','Selectează rolul care te reprezintă.','role','','role'],['LOCAȚIE','În ce oraș se află optica?','Construim adresa pas cu pas.','city','Oraș','text'],['LOCAȚIE','În ce județ?','Județul în care se află optica.','county','Județ','text'],['LOCAȚIE','Strada','Introdu doar strada.','street','Stradă','text'],['LOCAȚIE','Număr','Ultimul element al adresei.','number','Număr','text'],['PERSPECTIVĂ','Cum abordați miopia?','Folosiți soluții dedicate pentru gestionarea miopiei?','myopia','','q1'],['MYOLESS','Cât de familiar îți este Myoless?','Alege formularea care te reprezintă.','myoless','','q2']];function norm(s){return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}function buc(s){return norm(s)==='bucuresti'}function ph(v){let d=v.replace(/\D/g,'');if(d.startsWith('0040'))d=d.slice(2);if(d.startsWith('40'))d='0'+d.slice(2);return /^07\d{8}$/.test(d)}function cap(v){return String(v).trim().toLocaleLowerCase('ro-RO').replace(/(^|[\s\-'])\p{L}/gu,m=>m.toLocaleUpperCase('ro-RO'))}function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}function start(){flow.classList.add('open');n=0;render()}function render(){
+const S={gdpr:false,first:'',last:'',phone:'',email:'',optic:'',role:'',city:'',county:'',street:'',myopia:'',myoless:''};let n=0,lock=false;const A=[['IDENTITATE','Care este prenumele tău?','Începem cu tine.','first','Prenume','text'],['IDENTITATE','Care este numele tău?','Completează numele de familie.','last','Nume','text'],['CONTACT','Lasă-ne numărul tău de telefon','Pentru a afla detalii despre prezentare.','phone','07xx xxx xxx','tel'],['CONTACT','Adresa ta de e-mail','Opțional. O poți lăsa necompletată.','email','nume@exemplu.ro','email'],['OPTICA TA','Ce optică reprezinți?','Denumirea opticii medicale.','optic','Denumirea opticii','text'],['OPTICA TA','Care este rolul tău în optică?','Selectează rolul care te reprezintă.','role','','role'],['LOCAȚIE','În ce oraș se află optica?','Construim adresa pas cu pas.','city','Oraș','text'],['LOCAȚIE','În ce județ?','Județul în care se află optica.','county','Județ','text'],['LOCAȚIE','Strada și număr','Introdu strada și numărul imobilului.','street','Ex. Strada Republicii 25','text'],['PERSPECTIVĂ','Cum abordați miopia?','Folosiți soluții dedicate pentru gestionarea miopiei?','myopia','','q1'],['MYOLESS','Cât de familiar îți este Myoless?','Alege formularea care te reprezintă.','myoless','','q2']];function norm(s){return s.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')}function buc(s){return norm(s)==='bucuresti'}function ph(v){let d=v.replace(/\D/g,'');if(d.startsWith('0040'))d=d.slice(2);if(d.startsWith('40'))d='0'+d.slice(2);return /^07\d{8}$/.test(d)}function cap(v){return String(v).trim().toLocaleLowerCase('ro-RO').replace(/(^|[\s\-'])\p{L}/gu,m=>m.toLocaleUpperCase('ro-RO'))}function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')}function start(){flow.classList.add('open');n=0;render()}function render(){
 lock=false;
-let sk=buc(S.city),total=sk?11:12;
+let sk=buc(S.city),total=sk?10:11;
 if(!S.gdpr){
  label.textContent='ACORD GDPR';count.textContent='00 / '+total;bar.style.width='2%';
  box.innerHTML=`<section class="step gdpr-step"><small>CONFIDENȚIALITATE</small><h2>Acord pentru prelucrarea datelor</h2><p>Pentru a continua înscrierea, avem nevoie de acordul tău pentru prelucrarea datelor cu caracter personal furnizate în acest formular, în scopul gestionării participării la prezentarea Avvero din cadrul SNOO 2026.</p><label class="gdpr-check"><input id="gdprConsent" type="checkbox"><span>Sunt de acord cu prelucrarea datelor mele cu caracter personal în scopul înscrierii și gestionării participării la eveniment.</span></label><div class="gdpr-error" id="gdprErr"></div><button class="gdpr-continue" type="button" onclick="acceptGdpr()">CONTINUĂ →</button></section>`;
@@ -31,7 +31,7 @@ if(!S.gdpr){
 let shown=n+1;if(sk&&n>=8)shown=n;
 count.textContent=String(shown).padStart(2,'0')+' / '+total;
 bar.style.width=(shown/total*100)+'%';
-if(n===12){success();return}
+if(n===11){success();return}
 let x=A[n];label.textContent=x[0];
 let body=x[5]==='q1'
  ?`<div class="answers"><button class="answer" onclick="pick('Da',this)">Da, folosim deja soluții dedicate</button><button class="answer" onclick="pick('Nu',this)">Nu încă, vrem să descoperim opțiunile</button></div>`
@@ -59,7 +59,7 @@ if(keepKeyboard){
   if(nf){nf.focus({preventScroll:true})}
 }else{
   move(advance)
-}}function back(){move(()=>{if(n===8&&buc(S.city))n-=2;else n--})}function pick(v,b){if(lock)return;S[A[n][3]]=v;b.classList.add('sel');lock=true;setTimeout(()=>{n++;render()},520)}function success(){label.textContent='CONFIRMAT';count.textContent=(buc(S.city)?'11 / 11':'12 / 12');bar.style.width='100%';let c='SNOO-'+String(Math.floor(Math.random()*9000)+1000);box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentare este rezervat.</p><div class="pass"><small>PARTICIPANT</small><div class="name">${esc(S.first)} ${esc(S.last)}</div><div class="code">${c}</div></div></section>`;nav.innerHTML='<button onclick="location.reload()">ÎNCHIDE</button>'}
+}}function back(){move(()=>{if(n===8&&buc(S.city))n-=2;else n--})}function pick(v,b){if(lock)return;S[A[n][3]]=v;b.classList.add('sel');lock=true;setTimeout(()=>{n++;render()},520)}function success(){label.textContent='CONFIRMAT';count.textContent=(buc(S.city)?'10 / 10':'11 / 11');bar.style.width='100%';let c='SNOO-'+String(Math.floor(Math.random()*9000)+1000);box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentare este rezervat.</p><div class="pass"><small>PARTICIPANT</small><div class="name">${esc(S.first)} ${esc(S.last)}</div><div class="code">${c}</div></div></section>`;nav.innerHTML='<button onclick="location.reload()">ÎNCHIDE</button>'}
 </script><script>
 const bgv=document.getElementById('bgvideo');
 if(bgv){bgv.muted=true;bgv.defaultMuted=true;bgv.playsInline=true;const playBg=()=>bgv.play().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(!document.hidden)playBg()});window.addEventListener('pageshow',playBg);playBg();}
@@ -513,5 +513,25 @@ html,body,button,input,textarea,select,
  .gdpr-check input{width:22px;height:22px}
  .gdpr-continue{width:100%;min-height:50px}
  .role-answers .answer{min-height:58px;font-size:16px}
+}
+</style>
+
+<style>
+/* Slightly larger microcopy for desktop readability */
+.meta,.step small,.ey,.event,.foot{font-size:max(9px,.62vw)!important}
+.step p{font-size:max(13px,.86vw)!important;line-height:1.48!important}
+.gdpr-check{font-size:max(13px,.82vw)!important}
+.gdpr-error,.err{font-size:max(10px,.65vw)!important}
+
+/* Same Continue position on every desktop form step */
+@media(min-width:761px){
+  .modal{position:relative!important}
+  .nav{position:absolute!important;left:0!important;bottom:38px!important;width:auto!important;margin:0!important;z-index:20!important}
+  .nav button{min-width:150px!important;min-height:48px!important}
+  .gdpr-continue{position:absolute!important;left:0!important;bottom:38px!important;margin:0!important;min-width:150px!important;min-height:48px!important;z-index:20!important}
+}
+@media(max-width:760px){
+  .meta,.step small{font-size:9px!important}
+  .step p,.gdpr-check{font-size:13px!important}
 }
 </style>

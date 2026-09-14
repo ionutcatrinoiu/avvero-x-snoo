@@ -260,56 +260,19 @@ html,body,button,input,textarea,select,
 </style>
 
 <style>
-/* Hero: more breathing room without changing the visual direction */
-.copy h1{
-  letter-spacing:-.038em!important;
-  line-height:1.01!important;
-}
 @media(max-width:760px){
-  .copy h1{
-    font-size:clamp(37px,10.8vw,47px)!important;
-    line-height:1.015!important;
-    letter-spacing:-.035em!important;
-  }
-
-  /* When a field has focus, compact the step so the action remains above iOS keyboard */
-  body.keyboard-open .modal{
-    height:var(--vvh,100dvh)!important;
-    min-height:var(--vvh,100dvh)!important;
-    padding-top:12px!important;
-    padding-bottom:10px!important;
-  }
-  body.keyboard-open .meta{display:none!important}
-  body.keyboard-open .prog{margin-top:2px!important}
-  body.keyboard-open .step{padding:5px 0!important}
-  body.keyboard-open .step small{display:none!important}
-  body.keyboard-open .step h2{
-    font-size:clamp(27px,7.7vw,34px)!important;
-    line-height:1.02!important;
-    margin:5px 0 5px!important;
-  }
-  body.keyboard-open .step p{
-    font-size:11px!important;
-    margin:0 0 9px!important;
-  }
-  body.keyboard-open .field{
-    min-height:44px!important;
-    font-size:18px!important;
-    padding:7px 2px!important;
-  }
-  body.keyboard-open .err{min-height:8px!important}
   body.keyboard-open .nav{
     position:fixed!important;
     left:20px!important;
     right:20px!important;
-    bottom:calc(10px + env(safe-area-inset-bottom))!important;
-    z-index:10020!important;
-    padding:7px 0 0!important;
-    background:linear-gradient(180deg,rgba(241,240,235,0),#f1f0eb 38%)!important;
+    bottom:calc(var(--keyboard-height,0px) + 8px)!important;
+    z-index:10050!important;
+    padding:0!important;
+    background:transparent!important;
   }
   body.keyboard-open .nav button{
     width:100%!important;
-    min-width:100%!important;
+    min-width:0!important;
     min-height:48px!important;
   }
 }
@@ -318,14 +281,14 @@ html,body,button,input,textarea,select,
 (function(){
   if(!window.visualViewport) return;
   const vv=window.visualViewport;
-  function syncKeyboard(){
-    const keyboardOpen = (window.innerHeight - vv.height) > 120;
-    document.documentElement.style.setProperty('--vvh', vv.height + 'px');
-    document.body.classList.toggle('keyboard-open', keyboardOpen);
+  function updateKeyboardButton(){
+    const kh=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+    const open=kh>120;
+    document.documentElement.style.setProperty('--keyboard-height',kh+'px');
+    document.body.classList.toggle('keyboard-open',open);
   }
-  vv.addEventListener('resize', syncKeyboard);
-  vv.addEventListener('scroll', syncKeyboard);
-  window.addEventListener('orientationchange', ()=>setTimeout(syncKeyboard,120));
-  syncKeyboard();
+  vv.addEventListener('resize',updateKeyboardButton);
+  vv.addEventListener('scroll',updateKeyboardButton);
+  updateKeyboardButton();
 })();
 </script>

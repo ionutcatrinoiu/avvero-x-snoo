@@ -1,0 +1,10 @@
+const fs=require('fs'),assert=require('assert');
+const h=fs.readFileSync('index.html','utf8');
+const a=fs.readFileSync('api/register.js','utf8');
+assert(!h.includes('Math.random()'),'success code must come only from server');
+assert(h.includes('await submitRegistration()'),'UI must await persistence');
+assert(h.includes("data.participationCode"),'UI must render server code');
+assert(h.includes('DUPLICATE_PHONE'),'duplicate must be user-visible');
+assert(a.includes("admin.initializeApp({credential:admin.credential.cert(serviceAccount)})"),'Firebase Admin must initialize explicitly');
+assert(!a.includes('GOOGLE_APPLICATION_CREDENTIALS'),'must not use ADC temp-file path');
+console.log('fix3 tests OK');

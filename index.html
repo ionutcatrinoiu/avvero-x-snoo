@@ -61,30 +61,37 @@ if(keepKeyboard){
   move(advance)
 }}function back(){move(()=>{if(n===8&&buc(S.city))n-=2;else n--})}function pick(v,b){if(lock)return;S[A[n][3]]=v;b.classList.add('sel');lock=true;setTimeout(()=>{n++;render()},520)}
 let registrationSubmitted=false;
+function registrationPayload(){return {
+ firstName:S.first,lastName:S.last,phone:S.phone,email:S.email||null,
+ opticalStore:S.optic,role:S.role,city:S.city,
+ county:buc(S.city)?'București':S.county,streetAddress:S.street,
+ usesMyopiaManagement:S.myopia,knowsMyoless:S.myoless,
+ gdprConsent:true,event:'SNOO 2026'
+}}
 async function submitRegistration(){
- if(registrationSubmitted)return;
+ if(registrationSubmitted)throw new Error('SUBMIT_IN_PROGRESS');
  registrationSubmitted=true;
- const payload={
-  firstName:S.first,lastName:S.last,phone:S.phone,email:S.email||null,
-  opticalStore:S.optic,role:S.role,city:S.city,
-  county:buc(S.city)?'București':S.county,
-  streetAddress:S.street,
-  usesMyopiaManagement:S.myopia,knowsMyoless:S.myoless,
-  gdprConsent:true,event:'SNOO 2026'
- };
  try{
-  const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-  const data=await r.json();
-  if(!r.ok)throw new Error(data.error||'SAVE_FAILED');
-  const code=document.querySelector('.code');
-  if(code&&data.participationCode)code.textContent=data.participationCode;
- }catch(e){
-  registrationSubmitted=false;
-  console.error('Registration save failed',e);
- }
+  const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(registrationPayload())});
+  let data={};try{data=await r.json()}catch(_){}
+  if(!r.ok){const e=new Error(data.error||'SAVE_FAILED');e.code=data.error||'SAVE_FAILED';throw e}
+  return data;
+ }finally{registrationSubmitted=false}
 }
-function success(){label.textContent='CONFIRMAT';count.textContent=(buc(S.city)?'10 / 10':'11 / 11');bar.style.width='100%';let c='SNOO-'+String(Math.floor(Math.random()*9000)+1000);box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentare este rezervat.</p><div class="pass"><small>PARTICIPANT</small><div class="name">${esc(S.first)} ${esc(S.last)}</div><div class="code">${c}</div></div></section>`;nav.innerHTML='<button onclick="location.reload()">ÎNCHIDE</button>'
- submitRegistration();
+async function success(){
+ label.textContent='SE SALVEAZĂ';count.textContent=(buc(S.city)?'10 / 10':'11 / 11');bar.style.width='100%';nav.innerHTML='';
+ box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Finalizăm înscrierea.</h2><p>Salvăm datele și rezervăm locul tău la prezentare.</p></section>`;
+ try{
+  const data=await submitRegistration();
+  label.textContent='CONFIRMAT';
+  box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentare este rezervat.</p><div class="pass"><small>PARTICIPANT</small><div class="name">${esc(S.first)} ${esc(S.last)}</div><div class="code">${esc(data.participationCode||'')}</div></div></section>`;
+  nav.innerHTML='<button class="action-primary" onclick="location.reload()">ÎNCHIDE</button>';
+ }catch(e){
+  label.textContent='NECONFIRMAT';
+  const duplicate=e.code==='DUPLICATE_PHONE';
+  box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>${duplicate?'Numărul este deja înscris.':'Înscrierea nu a fost salvată.'}</h2><p>${duplicate?'Există deja o participare asociată acestui număr de telefon.':'Verifică conexiunea și încearcă din nou. Locul nu este considerat rezervat până la confirmare.'}</p></section>`;
+  nav.innerHTML=duplicate?'<button class="action-primary" onclick="location.reload()">ÎNCHIDE</button>':'<button class="action-primary" onclick="success()">REÎNCEARCĂ →</button>';
+ }
 }
 </script><script>
 const bgv=document.getElementById('bgvideo');

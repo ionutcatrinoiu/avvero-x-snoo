@@ -5,7 +5,7 @@
 .bg{position:fixed;inset:0;z-index:0;overflow:hidden;background:#071719}.veil{position:fixed;inset:0;z-index:1;background:linear-gradient(90deg,rgba(4,16,18,.82) 0%,rgba(4,16,18,.61) 34%,rgba(4,16,18,.15) 68%,rgba(4,16,18,.25) 100%),linear-gradient(0deg,rgba(4,14,16,.34),transparent 50%)}.grain{position:fixed;inset:0;z-index:2;pointer-events:none;opacity:.045;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 header{position:fixed;z-index:6;left:5vw;right:5vw;top:34px;display:flex;align-items:flex-start;justify-content:space-between}.logo{width:112px;height:auto}.event{font-size:8px;letter-spacing:.29em;font-weight:500;color:rgba(255,255,255,.78);padding-top:7px}
 .hero{position:fixed;z-index:5;inset:0;display:flex;align-items:center}.copy{margin-left:5vw;width:min(700px,54vw)}.ey{font-size:9px;letter-spacing:.25em;font-weight:500;margin-bottom:26px;color:rgba(255,255,255,.82)}
-h1{font-size:clamp(52px,5.45vw,84px);font-weight:700;line-height:.97;letter-spacing:-.055em;margin:0 0 25px;text-transform:none}.accent{font-style:normal;font-weight:700;color:#a9e3e4}.copy p{max-width:580px;color:rgba(255,255,255,.77);font-size:13px;line-height:1.72;font-weight:300}.go{position:relative;overflow:hidden;margin-top:31px;border:1px solid rgba(255,255,255,.78);border-radius:100px;background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.055));backdrop-filter:blur(16px) saturate(145%);box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 12px 42px rgba(0,0,0,.18);color:#fff;padding:15px 23px;cursor:pointer;font-size:9px;letter-spacing:.17em;font-weight:500;transition:.35s}.go i{display:none}.go:before{content:'';position:absolute;left:-25%;top:-120%;width:48%;height:340%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);transform:rotate(22deg);transition:.7s}.go:hover:before{left:115%}.go:hover{background:#fff;color:#122326;transform:translateY(-2px)}.tech{display:none}.foot{position:fixed;z-index:5;left:5vw;bottom:27px;font-size:7px;letter-spacing:.2em;color:rgba(255,255,255,.55)}.foot b{color:white;font-weight:500}
+h1{font-size:clamp(52px,5.45vw,84px);font-weight:700;line-height:.97;letter-spacing:-.055em;margin:0 0 25px;text-transform:none}.accent{font-style:normal;font-weight:700;color:#a9e3e4}.copy p{max-width:580px;color:rgba(255,255,255,.77);font-size:13px;line-height:1.72;font-weight:300}.go{min-height:58px;min-width:218px;position:relative;overflow:hidden;margin-top:31px;border:1px solid rgba(255,255,255,.78);border-radius:100px;background:linear-gradient(135deg,rgba(255,255,255,.20),rgba(255,255,255,.055));backdrop-filter:blur(16px) saturate(145%);box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 12px 42px rgba(0,0,0,.18);color:#fff;padding:15px 23px;cursor:pointer;font-size:9px;letter-spacing:.17em;font-weight:500;transition:.35s}.go i{display:none}.go:before{content:'';position:absolute;left:-25%;top:-120%;width:48%;height:340%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);transform:rotate(22deg);transition:.7s}.go:hover:before{left:115%}.go:hover{background:#fff;color:#122326;transform:translateY(-2px)}.tech{display:none}.foot{position:fixed;z-index:5;left:5vw;bottom:27px;font-size:7px;letter-spacing:.2em;color:rgba(255,255,255,.55)}.foot b{color:white;font-weight:500}
 .flow{position:fixed;inset:0;z-index:20;opacity:0;pointer-events:none;background:#f1f0eb;transition:.7s cubic-bezier(.16,1,.3,1);clip-path:inset(100% 0 0 0)}.flow.open{opacity:1;pointer-events:auto;clip-path:inset(0)}.modal{width:min(980px,92vw);height:100%;margin:auto;padding:46px 10px 38px;color:#162325;display:flex;flex-direction:column}.meta{display:flex;justify-content:space-between;font-size:8px;letter-spacing:.23em;color:#718082}.prog{height:1px;background:#ccd0cd;margin:16px 0 0}.prog span{height:1px;display:block;background:#162325;width:9%;transition:.55s}.modal #box{flex:1;display:flex;align-items:center}.step{width:100%;animation:in .55s cubic-bezier(.16,1,.3,1)}@keyframes in{from{opacity:0;filter:blur(8px);transform:translateY(22px)}to{opacity:1;filter:none;transform:none}}.step.out{animation:out .22s ease forwards}@keyframes out{to{opacity:0;filter:blur(7px);transform:translateY(-16px)}}.step small{font-size:8px;letter-spacing:.22em;color:#728083}.step h2{text-transform:none;font-size:clamp(38px,4.7vw,66px);font-weight:300;line-height:1.02;letter-spacing:-.055em;margin:16px 0 12px;max-width:850px}.step p{font-size:12px;color:#6d797b;margin:0 0 32px}.field{width:100%;border:0;border-bottom:1px solid #aeb7b5;background:transparent;color:#162325;padding:12px 0 14px;font-size:27px;font-weight:300;outline:0}.field:focus{border-color:#162325}.field::placeholder{color:#a3acab}.field[type=text]{text-transform:capitalize}.field[type=tel],.field[type=email]{text-transform:none}.err{height:18px;color:#a9444d;font-size:9px;margin-top:7px}.nav{display:flex;justify-content:center;align-items:center}.nav button{border:0;background:none;color:#162325;font-size:8px;letter-spacing:.18em;cursor:pointer;padding:12px 0;font-weight:500}.nav .back{color:#7c8888}.answers{border-top:1px solid #c9cfcc}.answer{display:block;width:100%;position:relative;text-align:left;border:0;border-bottom:1px solid #c9cfcc;background:none;color:#536063;padding:21px 2px;font-size:18px;font-weight:300;cursor:pointer;transition:.3s}.answer:hover,.answer.sel{padding-left:17px;color:#111c1e}.answer:hover:before,.answer.sel:before{content:"";position:absolute;left:0;top:50%;width:5px;height:5px;border-radius:50%;background:#55aeb1}.pass{margin-top:22px;padding:22px 0;border-top:1px solid #bcc4c1;border-bottom:1px solid #bcc4c1}.pass .name{font-size:25px;font-weight:300;margin:15px 0 5px}.pass .code{font-size:9px;letter-spacing:.22em;color:#448e91}
 @media(max-width:760px){header{top:20px}.logo{width:82px}.hero{align-items:flex-end;padding-bottom:9vh}.copy{margin-left:6vw;width:88vw}h1{font-size:46px}.copy p{font-size:11px}.modal{width:88vw;padding-top:30px}.step h2{text-transform:none;font-size:39px}.bg iframe{width:210vh}.go{padding:14px 19px}}
 </style><style>
@@ -25,7 +25,7 @@ lock=false;
 let sk=buc(S.city),total=sk?10:11;
 if(!S.gdpr){
  label.textContent='ACORD GDPR';count.textContent='00 / '+total;bar.style.width='2%';
- box.innerHTML=`<section class="step gdpr-step"><small>CONFIDENȚIALITATE</small><h2>Acord pentru prelucrarea datelor</h2><p>Pentru a continua înscrierea, avem nevoie de acordul tău pentru prelucrarea datelor cu caracter personal furnizate în acest formular, în scopul gestionării participării la prezentarea Avvero din cadrul SNOO 2026.</p><label class="gdpr-check"><input id="gdprConsent" type="checkbox"><span>Sunt de acord cu prelucrarea datelor mele cu caracter personal în scopul înscrierii și gestionării participării la eveniment.</span></label><div class="gdpr-error" id="gdprErr"></div></section><div class="gdpr-nav nav-like"><button class="action-primary" type="button" onclick="acceptGdpr()">CONTINUĂ →</button></div>`;
+ box.innerHTML=`<section class="step gdpr-step"><small>CONFIDENȚIALITATE</small><h2>Acord pentru prelucrarea datelor</h2><p>Pentru a continua înscrierea, avem nevoie de acordul tău pentru prelucrarea datelor cu caracter personal furnizate în acest formular, în scopul gestionării participării la prezentarea Avvero din cadrul SNOO 2026.</p><label class="gdpr-check"><input id="gdprConsent" type="checkbox" onchange="acceptGdpr()"><span>Sunt de acord cu prelucrarea datelor mele cu caracter personal în scopul înscrierii și gestionării participării la eveniment.</span></label><div class="gdpr-error" id="gdprErr"></div></section>`;
  nav.innerHTML='';return;
 }
 let shown=n+1;if(sk&&n>=8)shown=n;
@@ -551,21 +551,21 @@ html,body,button,input,textarea,select,
 
 <style>
 /* Slightly larger microcopy for desktop readability */
-.meta,.step small,.ey,.event,.foot{font-size:max(9px,.62vw)!important}
-.step p{font-size:max(13px,.86vw)!important;line-height:1.48!important}
-.gdpr-check{font-size:max(13px,.82vw)!important}
-.gdpr-error,.err{font-size:max(10px,.65vw)!important}
+.meta,.step small,.ey,.event,.foot{font-size:max(10px,.68vw)!important}
+.step p{font-size:max(15px,.94vw)!important;line-height:1.52!important}
+.gdpr-check{font-size:max(15px,.9vw)!important}
+.gdpr-error,.err{font-size:max(11px,.7vw)!important}
 
 /* Same Continue position on every desktop form step */
 @media(min-width:761px){
   .modal{position:relative!important}
   .nav{position:absolute!important;left:0!important;bottom:38px!important;width:auto!important;margin:0!important;z-index:20!important}
-  .nav button{min-width:150px!important;min-height:48px!important}
+  .nav button{min-width:180px!important;min-height:56px!important}
   .gdpr-continue-legacy{position:absolute!important;left:0!important;bottom:38px!important;margin:0!important;min-width:150px!important;min-height:48px!important;z-index:20!important}
 }
 @media(max-width:760px){
-  .meta,.step small{font-size:9px!important}
-  .step p,.gdpr-check{font-size:13px!important}
+  .meta,.step small{font-size:10px!important}
+  .step p,.gdpr-check{font-size:15px!important}
 }
 </style>
 
@@ -573,9 +573,9 @@ html,body,button,input,textarea,select,
 .action-primary,.gdpr-nav .action-primary{
   border:1px solid #162325!important;border-radius:999px!important;
   background:#162325!important;color:#fff!important;
-  min-width:150px!important;min-height:48px!important;padding:0 24px!important;
+  min-width:180px!important;min-height:56px!important;padding:0 30px!important;
   font-family:"Source Sans 3","Source Sans Pro",Arial,Helvetica,sans-serif!important;
-  font-size:9px!important;font-weight:600!important;letter-spacing:.16em!important;
+  font-size:10px!important;font-weight:600!important;letter-spacing:.15em!important;
 }
 @media(min-width:761px){
  .gdpr-nav{

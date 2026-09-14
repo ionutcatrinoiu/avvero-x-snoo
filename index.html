@@ -46,12 +46,12 @@ let RO_CITIES=[],CITY_INDEX=new Map(),localitiesReady=false,localitiesFailed=fal
 let transitionDir='forward',touchStartX=0,touchStartY=0,touchStartedAt=0,touchDragging=false,swipeNavigation=false;
 function cityKey(v){return String(v||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ș/g,'s').replace(/ț/g,'t')}
 function parseCityRow(r){
- const name=r.nume||r.name||r.oras||r.city||''; const code=String(r.judet||r.county||r.judetAuto||r.countyCode||'').toUpperCase();
- const county=COUNTY_BY_CODE[code]||r.judetNume||r.countyName||(code==='-'?'București':'');
+ const name=r.nume||r.name||r.oras||r.city||''; const code=String(r.judetAuto||r.countyCode||r.county||'').toUpperCase();
+ const county=COUNTY_BY_CODE[code]||r.judetNume||r.countyName||r.judet||(code==='-'?'București':'');
  return name?{name,county:cityKey(name)==='bucuresti'?'București':county}:null;
 }
 async function loadRomaniaCities(){
- try{const r=await fetch('https://andreitripon.github.io/lista-oraselor/dist/json/lista-oraselor.json',{cache:'force-cache'});if(!r.ok)throw new Error('cities');const raw=await r.json();const rows=Array.isArray(raw)?raw:(raw.data||raw.orase||[]);RO_CITIES=rows.map(parseCityRow).filter(x=>x&&x.county);CITY_INDEX=new Map(RO_CITIES.map(x=>[cityKey(x.name),x]));localitiesReady=RO_CITIES.length>250;if(!localitiesReady)throw new Error('cities');}
+ try{const r=await fetch('https://raw.githubusercontent.com/romania/localitati/master/json/orase.min.json',{cache:'force-cache'});if(!r.ok)throw new Error('cities');const raw=await r.json();const rows=Array.isArray(raw)?raw:(raw.data||raw.orase||[]);RO_CITIES=rows.map(parseCityRow).filter(x=>x&&x.county);CITY_INDEX=new Map(RO_CITIES.map(x=>[cityKey(x.name),x]));localitiesReady=RO_CITIES.length>250;if(!localitiesReady)throw new Error('cities');}
  catch(e){localitiesFailed=true;console.error('Lista orașelor nu a putut fi încărcată',e)}
 }
 loadRomaniaCities();
@@ -76,9 +76,9 @@ let body=x[5]==='q1'
  ?`<div class="answers role-answers"><button class="answer" onclick="pick('Medic oftalmolog',this)">Medic oftalmolog</button><button class="answer" onclick="pick('Optometrist',this)">Optometrist</button><button class="answer" onclick="pick('Administrator',this)">Administrator</button><button class="answer" onclick="pick('Consilier vânzări',this)">Consilier vânzări</button><button class="answer" onclick="pick('Altul',this)">Altul</button></div>`
  :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" placeholder="${x[4]}" value="${esc(S[x[3]])}" ${x[3]==='city'?'list="cityList" autocomplete="off"':x[3]==='county'?'list="countyList" autocomplete="off"':''}>${x[3]==='city'?'<datalist id="cityList">'+RO_CITIES.map(c=>'<option value="'+esc(c.name)+'"></option>').join('')+'</datalist>':x[3]==='county'?'<datalist id="countyList">'+Object.values(COUNTY_BY_CODE).filter(c=>c!=='București').map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>':''}<div class="err" id="err"></div>`;
 let choice=x[5]==='role'||x[5][0]==='q';
-let inlineAction=choice?'':`<button class="inline-next" type="button" onclick="next()" aria-label="Continuă">→</button>`;
+let inlineAction=choice?'':(window.matchMedia('(max-width:760px)').matches?'':`<button class="inline-next" type="button" onclick="next()" aria-label="Continuă">→</button>`);
 box.innerHTML=`<section class="step ${transitionDir==='back'?'from-up':''}"><small>${x[0]}</small><h2>${x[1]}</h2><p>${x[2]}</p><div class="field-row">${body}${inlineAction}</div><div class="swipe-hint">Glisează în sus</div></section>`;
-nav.innerHTML=choice?'':'<button class="action-primary" onclick="next()">CONTINUĂ →</button>';
+nav.innerHTML=(choice||window.matchMedia('(max-width:760px)').matches)?'':'<button class="action-primary" onclick="next()">CONTINUĂ →</button>';
 if(window.field){setTimeout(()=>field.focus(),200);field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();next(true)}}}
 }
 function acceptGdpr(){
@@ -218,6 +218,22 @@ if(bgv){bgv.muted=true;bgv.defaultMuted=true;bgv.playsInline=true;const playBg=(
   .inline-next{display:none!important}
   .swipe-hint{display:flex;position:fixed;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom));z-index:30;align-items:center;justify-content:center;margin:0;color:#718082;font-size:12px;font-weight:600;letter-spacing:.08em;user-select:none;pointer-events:none}
   .step.swipe-drag{animation:none!important;filter:none!important;will-change:transform,opacity;backface-visibility:hidden}
+}
+</style>
+
+<script>
+(function(){
+ const vv=window.visualViewport;
+ if(!vv)return;
+ const syncKeyboard=()=>document.body.classList.toggle('keyboard-open', window.innerHeight-vv.height>140);
+ vv.addEventListener('resize',syncKeyboard); vv.addEventListener('scroll',syncKeyboard); syncKeyboard();
+})();
+</script>
+<style>
+@media(max-width:760px){
+ .inline-next,.modal>.nav{display:none!important}
+ .swipe-hint{position:fixed!important;left:0!important;right:0!important;top:auto!important;bottom:calc(18px + env(safe-area-inset-bottom))!important;display:flex!important;justify-content:center!important;align-items:center!important;z-index:999!important;margin:0!important;transform:none!important;pointer-events:none!important}
+ .keyboard-open .swipe-hint{display:none!important}
 }
 </style>
 </body></html>

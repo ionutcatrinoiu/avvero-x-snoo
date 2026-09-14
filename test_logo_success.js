@@ -1,0 +1,10 @@
+const fs=require('fs');
+const admin=fs.readFileSync('admin/index.html','utf8');
+const pub=fs.readFileSync('index.html','utf8');
+const assert=(c,m)=>{if(!c){console.error('FAIL:',m);process.exit(1)}};
+assert(admin.includes('/avvero-logo-principal.png'),'login uses transparent PNG logo');
+assert(admin.includes('/avvero-logo-secundar.png'),'dashboard uses transparent PNG logo');
+assert(/admin-login-logo\{[^}]*margin:[^;}]*auto/i.test(admin),'login logo centered');
+assert(pub.includes('REVENIRE LA PAGINA PRINCIPALĂ'),'success has mobile home button');
+assert(pub.includes('mobile-success-home'),'mobile success action class exists');
+console.log('OK');

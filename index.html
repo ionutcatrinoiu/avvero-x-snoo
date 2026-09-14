@@ -75,12 +75,26 @@ let body=x[5]==='q1'
  ?`<div class="answers"><button class="answer" onclick="pick('Da',this)">Da, cunosc Myoless</button><button class="answer" onclick="pick('Nu',this)">Nu încă. Vreau să îl descopăr.</button></div>`
  :x[5]==='role'
  ?`<div class="answers role-answers"><button class="answer" onclick="pick('Medic oftalmolog',this)">Medic oftalmolog</button><button class="answer" onclick="pick('Optometrist',this)">Optometrist</button><button class="answer" onclick="pick('Administrator',this)">Administrator</button><button class="answer" onclick="pick('Consilier vânzări',this)">Consilier vânzări</button><button class="answer" onclick="pick('Altul',this)">Altul</button></div>`
- :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" placeholder="${x[4]}" value="${esc(S[x[3]])}" ${x[3]==='city'?'list="cityList" autocomplete="off"':x[3]==='county'?'list="countyList" autocomplete="off"':''}>${x[3]==='city'?'<datalist id="cityList">'+RO_CITIES.map(c=>'<option value="'+esc(c.name)+'"></option>').join('')+'</datalist>':x[3]==='county'?'<datalist id="countyList">'+Object.values(COUNTY_BY_CODE).filter(c=>c!=='București').map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>':''}<div class="err" id="err"></div>`;
+ :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" enterkeyhint="next" placeholder="${x[4]}" value="${esc(S[x[3]])}" ${x[3]==='city'?'list="cityList" autocomplete="off"':x[3]==='county'?'list="countyList" autocomplete="off"':''}>${x[3]==='city'?'<datalist id="cityList">'+RO_CITIES.map(c=>'<option value="'+esc(c.name)+'"></option>').join('')+'</datalist>':x[3]==='county'?'<datalist id="countyList">'+Object.values(COUNTY_BY_CODE).filter(c=>c!=='București').map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>':''}<div class="err" id="err"></div>`;
 let choice=x[5]==='role'||x[5][0]==='q';
 let inlineAction=choice?'':(window.matchMedia('(max-width:760px)').matches?'':`<button class="inline-next" type="button" onclick="next()" aria-label="Continuă">→</button>`);
 box.innerHTML=`<section class="step ${transitionDir==='back'?'from-up':''}"><small>${x[0]}</small><h2>${x[1]}</h2><p>${x[2]}</p><div class="field-row">${body}${inlineAction}</div><div class="swipe-hint">Glisează în sus</div></section>`;
 nav.innerHTML=(choice||window.matchMedia('(max-width:760px)').matches)?'':'<button class="action-primary" onclick="next()">CONTINUĂ →</button>';
-if(window.field){setTimeout(()=>field.focus(),200);field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();next(true)}}}
+if(window.field){
+ setTimeout(()=>field.focus(),200);
+ field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();next(true)}};
+ field.onblur=mobileFieldBlurAdvance;
+}
+}
+function mobileFieldBlurAdvance(e){
+ if(!window.matchMedia('(max-width:760px)').matches||lock||!S.gdpr||n<0||n>=9)return;
+ const current=e.currentTarget;
+ setTimeout(()=>{
+  if(document.activeElement===current||lock||!current.isConnected)return;
+  const value=current.value.trim();
+  if(!value&&A[n][3]!=='email')return;
+  next(false);
+ },90);
 }
 function acceptGdpr(){
  const c=document.getElementById('gdprConsent');
@@ -232,7 +246,7 @@ if(bgv){bgv.muted=true;bgv.defaultMuted=true;bgv.playsInline=true;const playBg=(
 </script>
 <style>
 @media(max-width:760px){
- .inline-next,.modal>.nav{display:none!important}
+ .inline-next{display:none!important}
  .swipe-hint{display:none}
  
 }
@@ -240,7 +254,7 @@ if(bgv){bgv.muted=true;bgv.defaultMuted=true;bgv.playsInline=true;const playBg=(
 
 <style>
 @media(max-width:760px){
- .inline-next,.modal>.nav{display:none!important}
+ .inline-next{display:none!important}
  .swipe-hint{display:block!important;position:static!important;inset:auto!important;margin-top:12px!important;text-align:center!important;color:#718082;font-size:12px;font-weight:600;letter-spacing:.08em;line-height:1.3;transform:none!important;pointer-events:none;user-select:none}
 }
 </style>
@@ -715,5 +729,13 @@ html,body,button,input,textarea,select,
 @media(max-width:760px){
   .go{font-size:13px!important;letter-spacing:.11em!important}
   .action-primary,.gdpr-nav .action-primary{font-size:12px!important;letter-spacing:.11em!important}
+}
+</style>
+
+<style>
+@media(max-width:760px){
+ .modal>.nav:empty{display:none!important}
+ .modal>.nav:not(:empty){display:flex!important;position:sticky!important;bottom:max(18px,env(safe-area-inset-bottom))!important;z-index:30!important}
+ .mobile-success-home{display:inline-flex!important;align-items:center!important;justify-content:center!important}
 }
 </style>

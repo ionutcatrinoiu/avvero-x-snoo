@@ -9,7 +9,7 @@ function dayBefore(ymd){const [y,m,d]=ymd.split('-').map(Number);const x=new Dat
 function isReminderDay(now=new Date()){return localYmd(now)===dayBefore(EVENT.date)}
 function reminderKey(id){return `snoo-2026-reminder/${String(id).replace(/[^a-zA-Z0-9_-]/g,'_')}/${EVENT.date}`}
 function confirmationKey(id){return `snoo-2026-confirmation/${String(id).replace(/[^a-zA-Z0-9_-]/g,'_')}`}
-const logoUrl='https://avvero-x-snoo.vercel.app/avvero-logo-principal.png';
+const logoUrl='https://avvero-x-snoo.vercel.app/avvero-logo-secundar.png';
 function shell(content){return `<!doctype html><html lang="ro"><body style="margin:0;background:#f1f0eb;color:#162325;font-family:Arial,sans-serif"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f1f0eb;padding:32px 14px"><tr><td align="center"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;background:#f7f6f2;border:1px solid #d5d7d2;border-radius:24px"><tr><td style="padding:38px 36px"><img src="${logoUrl}" alt="Avvero" width="170" style="display:block;width:170px;max-width:48%;height:auto;margin:0 0 28px"><div style="font-size:11px;letter-spacing:3px;color:#697371;font-weight:700">AVVERO × SNOO 2026</div>${content}</td></tr></table></td></tr></table></body></html>`}
 function eventBox(){return `<div style="margin:26px 0;padding:22px;border:1px solid #d5d7d2;border-radius:18px"><p style="margin:0 0 8px"><strong>Data:</strong> vineri, 16 octombrie 2026</p><p style="margin:0 0 8px"><strong>Ora:</strong> ${esc(EVENT.time)}</p><p style="margin:0"><strong>Locația:</strong> ${esc(EVENT.location)}</p></div>`}
 function renderReminderEmail(r={}){
@@ -23,7 +23,7 @@ function renderConfirmationEmail(r={}){
 function sender(){
   const email=String(process.env.SNOO_BREVO_SENDER_EMAIL||'').trim();
   if(!email)throw new Error('SNOO_BREVO_SENDER_EMAIL is not configured');
-  return {name:String(process.env.SNOO_BREVO_SENDER_NAME||'noreply@avvero.ro').trim(),email};
+  return {name:'AVVERO x SNOO 2026',email};
 }
 async function sendWithBrevo({to,name='',subject,html,key}){
   if(!process.env.BREVO_API_KEY)throw new Error('BREVO_API_KEY is not configured');

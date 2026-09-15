@@ -15,7 +15,7 @@ test('email module uses Brevo transactional API and no Resend dependency',()=>{
 test('confirmation email exists, includes Avvero logo and participation code',()=>{
   const s=fs.readFileSync(path.join(root,'api','_reminder.js'),'utf8');
   assert.match(s,/renderConfirmationEmail/);
-  assert.match(s,/avvero-logo-principal\.png/);
+  assert.match(s,/avvero-logo-secundar\.png/);
   assert.match(s,/participationCode/);
   assert.match(s,/Înscriere confirmată/);
 });
@@ -40,4 +40,12 @@ test('admin exposes confirmation and reminder statuses separately',()=>{
 test('package no longer depends on resend',()=>{
   const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
   assert.equal(pkg.dependencies.resend,undefined);
+});
+
+test('email branding uses secondary logo, AVVERO x SNOO 2026 sender name, and final event title punctuation',()=>{
+  const reminder=fs.readFileSync(path.join(root,'api','_reminder.js'),'utf8');
+  const event=fs.readFileSync(path.join(root,'api','_event.js'),'utf8');
+  assert.match(reminder,/avvero-logo-secundar\.png/);
+  assert.match(reminder,/name:'AVVERO x SNOO 2026'/);
+  assert.match(event,/Managementul miopiei dincolo de lentilă\. Cum educăm o generație să vadă mai bine/);
 });

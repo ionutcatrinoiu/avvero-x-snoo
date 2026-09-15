@@ -1024,3 +1024,80 @@ const _successUX=success;success=async function(){label.textContent='SE SALVEAZ�
 /* Dataset-ul romania/localitati conține toate localitățile, nu doar municipii. */
 const _loadCitiesUX=loadRomaniaCities;loadRomaniaCities=async function(){await _loadCitiesUX();localitiesReady=RO_CITIES.length>10000;if(!localitiesReady)console.warn('Lista completă de localități nu este disponibilă încă')};
 </script>
+<style id="final-regression-fix">
+.final-success-actions{display:flex;gap:16px;align-items:center;justify-content:flex-start;width:100%;box-sizing:border-box}
+.final-success-actions .action-primary{margin:0!important;box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center!important;white-space:nowrap!important;text-align:center!important}
+@media(min-width:761px){.final-success-actions .mobile-only{display:none!important}.final-success-actions{max-width:520px}.final-success-actions .action-primary{width:240px!important;min-width:240px!important;min-height:54px!important;padding:0 24px!important;border-radius:999px!important}}
+@media(max-width:760px){.final-success-actions .desktop-only{display:none!important}.final-success-actions{flex-direction:column;gap:12px;padding:0 18px 12px}.final-success-actions .action-primary{width:100%!important;min-width:0!important;min-height:58px!important;padding:14px 18px!important;border-radius:999px!important}}
+</style>
+<script>
+/* Final regression fix: one input pipeline, one swipe pipeline, one success action renderer. */
+const AUTO_FIELD_DELAY=700;
+let finalAutoTimer=null,finalPhoneSeq=0,finalSwipe=null;
+function currentFieldRule(){return A[n]||null}
+function basicFieldValid(x,v){
+ v=String(v||'').trim(); if(!x||!v)return false;
+ if(x[3]==='email')return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+ if(x[3]==='phone')return ph(v);
+ if(x[3]==='city'&&typeof cityLookup==='function'&&localitiesReady)return !!cityLookup(v);
+ return true;
+}
+async function livePhoneGate(f){
+ const msg=document.getElementById('err'); const phone=normalizePhoneClient(f.value); const seq=++finalPhoneSeq;
+ if(!/^07\d{8}$/.test(phone)){phoneDuplicate=false;if(msg)msg.textContent='';return false}
+ if(msg)msg.textContent='Verificăm numărul…';
+ try{
+  const r=await fetch('/api/check-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
+  const d=await r.json(); if(seq!==finalPhoneSeq||!f.isConnected)return false;
+  phoneDuplicate=!!d.exists; if(msg)msg.textContent=phoneDuplicate?'Acest număr de telefon este deja asociat unei rezervări.':'';
+  return !phoneDuplicate;
+ }catch(_){if(seq===finalPhoneSeq&&msg)msg.textContent='Nu am putut verifica numărul acum. Încearcă din nou.';return false}
+}
+function wireFinalField(){
+ const f=document.getElementById('field'),x=currentFieldRule(); if(!f||!x)return;
+ const handler=async e=>{
+  e.stopImmediatePropagation(); clearTimeout(finalAutoTimer); const v=f.value.trim();
+  if(x[3]==='phone'){
+   if(!ph(v)){phoneDuplicate=false;const m=document.getElementById('err');if(m)m.textContent=v?'Introdu un număr mobil din România.':'';return}
+   finalAutoTimer=setTimeout(async()=>{if(await livePhoneGate(f)){S[x[3]]=f.value.trim();if(f.isConnected&&!lock)next(false)}},320); return;
+  }
+  const valid=basicFieldValid(x,v); const m=document.getElementById('err'); if(m)m.textContent=(v&&!valid&&x[3]==='email')?'Introdu o adresă de e-mail validă.':'';
+  if(!valid)return;
+  finalAutoTimer=setTimeout(()=>{if(f.isConnected&&!lock&&basicFieldValid(x,f.value)){S[x[3]]=f.value.trim();next(false)}},AUTO_FIELD_DELAY);
+ };
+ f.addEventListener('input',handler,{capture:true}); f.addEventListener('change',handler,{capture:true});
+}
+const finalRenderBase=render; render=function(){clearTimeout(finalAutoTimer);finalRenderBase();wireFinalField()};
+
+function finalSwipeStart(e){
+ if(!matchMedia('(max-width:760px)').matches||!flow.classList.contains('open')||!S.gdpr||n<0||n>=11||e.touches.length!==1)return;
+ if(e.target.closest('button,input,label,a'))return; const t=e.touches[0];finalSwipe={x:t.clientX,y:t.clientY,t:Date.now(),step:box.querySelector('.step'),dy:0};
+ e.stopImmediatePropagation();
+}
+function finalSwipeMove(e){
+ if(!finalSwipe||e.touches.length!==1)return; const t=e.touches[0],dx=t.clientX-finalSwipe.x,dy=t.clientY-finalSwipe.y;
+ if(Math.abs(dy)<8||Math.abs(dy)<Math.abs(dx)*1.1)return; finalSwipe.dy=dy; const s=finalSwipe.step;if(s){s.style.transition='none';s.style.transform=`translate3d(0,${dy}px,0)`;s.style.opacity=String(Math.max(.72,1-Math.abs(dy)/900))} e.preventDefault();e.stopImmediatePropagation();
+}
+function finalSwipeEnd(e){
+ if(!finalSwipe)return; const st=finalSwipe;finalSwipe=null;e.stopImmediatePropagation(); const s=st.step,dy=st.dy;
+ if(s){s.style.transition='transform 180ms cubic-bezier(.22,1,.36,1),opacity 150ms ease';s.style.transform='translate3d(0,0,0)';s.style.opacity='1'}
+ if(Math.abs(dy)<64)return;
+ if(dy>0){back();return}
+ const x=A[n],kind=x&&x[5],key=x&&x[3]; if(kind==='role'||kind==='q1'||kind==='q2'){if(S[key])move(()=>n++);return} next(false);
+}
+flow.addEventListener('touchstart',finalSwipeStart,{capture:true,passive:true});
+flow.addEventListener('touchmove',finalSwipeMove,{capture:true,passive:false});
+flow.addEventListener('touchend',finalSwipeEnd,{capture:true,passive:true});
+flow.addEventListener('touchcancel',finalSwipeEnd,{capture:true,passive:true});
+
+success=async function(){
+ label.textContent='SE SALVEAZĂ';count.textContent=(buc(S.city)?'10 / 10':'11 / 11');progressFill().style.width='100%';nav.innerHTML='';
+ box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Finalizăm înscrierea.</h2><p>Salvăm datele și rezervăm locul tău la prezentare.</p></section>`;
+ try{
+  const data=await submitRegistration();clearDraft();label.textContent='CONFIRMAT';const code=esc(data.participationCode||'');
+  box.innerHTML=`<section class="step"><small>ÎNSCRIERE CONFIRMATĂ</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentarea Avvero este rezervat.</p><div class="participation-card"><div class="pc-label">AVVERO × SNOO 2026</div><div class="pc-name">${esc(S.first)} ${esc(S.last)}</div><div class="pc-code">${code}</div><div class="pc-event">Vineri, 16 octombrie 2026 · 16:00<br>ROMEXPO, București<br>Cadoul tău surpriză te așteaptă la prezentare.</div></div></section>`;
+  const mobile=matchMedia('(max-width:760px)').matches;
+  nav.innerHTML=mobile?`<div class="final-success-actions"><button class="action-primary" onclick="addToCalendar('${code}')">ADAUGĂ ÎN CALENDAR</button><button class="action-primary mobile-only" onclick="location.href='/'">REVENIRE LA PAGINA PRINCIPALĂ</button></div>`:`<div class="final-success-actions"><button class="action-primary" onclick="addToCalendar('${code}')">ADAUGĂ ÎN CALENDAR</button><button class="action-primary desktop-only" onclick="location.reload()">ÎNCHIDE</button></div>`;
+ }catch(e){label.textContent='NECONFIRMAT';const duplicate=e.code==='DUPLICATE_PHONE';box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>${duplicate?'Numărul este deja înscris.':'Înscrierea nu a fost salvată.'}</h2><p>${duplicate?'Există deja o participare asociată acestui număr de telefon.':'Verifică conexiunea și încearcă din nou.'}</p></section>`;nav.innerHTML=duplicate?'<button class="action-primary" onclick="location.reload()">ÎNCHIDE</button>':'<button class="action-primary" onclick="success()">REÎNCEARCĂ →</button>'}
+};
+</script>

@@ -86,17 +86,17 @@ let body=x[5]==='q1'
  ?`<div class="answers"><button class="answer" onclick="pick('Da',this)">Da, cunosc Myoless</button><button class="answer" onclick="pick('Nu',this)">Nu încă. Vreau să îl descopăr.</button></div>`
  :x[5]==='role'
  ?`<div class="answers role-answers"><button class="answer" onclick="pick('Medic oftalmolog',this)">Medic oftalmolog</button><button class="answer" onclick="pick('Optometrist',this)">Optometrist</button><button class="answer" onclick="pick('Administrator',this)">Administrator</button><button class="answer" onclick="pick('Consilier vânzări',this)">Consilier vânzări</button><button class="answer" onclick="pick('Altul',this)">Altul</button></div>`
- :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" enterkeyhint="next" placeholder="${x[4]}" value="${esc(S[x[3]])}" ${x[3]==='first'?'autocomplete="given-name"':x[3]==='last'?'autocomplete="family-name"':x[3]==='phone'?'autocomplete="tel"':x[3]==='email'?'autocomplete="email"':x[3]==='street'?'autocomplete="street-address"':x[3]==='city'?'list="cityList" autocomplete="address-level2"':x[3]==='county'?'list="countyList" autocomplete="address-level1"':''}>${x[3]==='city'?'<datalist id="cityList">'+RO_CITIES.map(c=>'<option value="'+esc(c.name)+'"></option>').join('')+'</datalist>':x[3]==='county'?'<datalist id="countyList">'+Object.values(COUNTY_BY_CODE).filter(c=>c!=='București').map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>':''}<div class="err" id="err" aria-live="polite"></div>`;
+ :`<input id="field" class="field" type="${x[5]}" inputmode="${x[5]==='tel'?'tel':'text'}" enterkeyhint="next" placeholder="${x[4]}" value="${esc(S[x[3]])}" ${x[3]==='first'?'autocomplete="given-name"':x[3]==='last'?'autocomplete="family-name"':x[3]==='phone'?'autocomplete="tel"':x[3]==='email'?'autocomplete="email"':x[3]==='street'?'autocomplete="street-address"':x[3]==='city'?'autocomplete="address-level2"':x[3]==='county'?'list="countyList" autocomplete="address-level1"':''}>${x[3]==='county'?'<datalist id="countyList">'+Object.values(COUNTY_BY_CODE).filter(c=>c!=='București').map(c=>'<option value="'+esc(c)+'"></option>').join('')+'</datalist>':''}<div class="err" id="err" aria-live="polite"></div>`;
 let choice=x[5]==='role'||x[5][0]==='q';
-const backDisabled=n<=0?'disabled aria-disabled="true"':'';
+const backDisabled='';
 const stepNav=`<div class="step-nav" aria-label="Navigare formular"><button type="button" class="step-arrow back-arrow" ${backDisabled} onclick="back()" aria-label="Înapoi">‹</button><button type="button" class="step-arrow forward-arrow" onclick="${choice?'choiceForward()':'next()'}" aria-label="Înainte">›</button></div>`;
 box.innerHTML=`<section class="step ${transitionDir==='back'?'from-up':''}" tabindex="-1"><small>${x[0]}</small><h2>${x[1]}</h2><p>${x[2]}</p><div class="field-row">${body}</div>${stepNav}</section>`;
 nav.innerHTML='';
 if(window.field){
  setTimeout(()=>field.focus({preventScroll:true}),200);
  field.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();next(true)}};
- field.onblur=mobileFieldBlurAdvance;
  if(x[3]==='phone')field.addEventListener('input',schedulePhoneCheck);
+ if(x[3]==='city')wireCityAutocomplete(field);
 }
 }
 function mobileFieldBlurAdvance(e){
@@ -135,7 +135,7 @@ if(keepKeyboard){
   if(nf){nf.focus({preventScroll:true})}
 }else{
   move(advance)
-}}function back(){if(lock||!S.gdpr||n<=0)return;const current=A[n];const f=document.getElementById('field');if(current&&f)S[current[3]]=f.value.trim();move(()=>{if(n===8&&buc(S.city))n-=2;else n--},'back')}function pick(v,b){if(lock)return;const key=A[n][3];S[key]=v;const answers=b.closest('.answers');if(answers)answers.querySelectorAll('.answer.sel').forEach(el=>el.classList.remove('sel'));b.classList.add('sel');const e=box.querySelector('.choice-error');if(e)e.textContent='';const forward=box.querySelector('.forward-arrow');if(forward)forward.disabled=false;try{saveDraft()}catch(_){}setTimeout(()=>choiceForward(),180)}
+}}function back(){if(lock||!S.gdpr)return;const current=A[n];const f=document.getElementById('field');if(current&&f)S[current[3]]=f.value.trim();if(n===0){S.gdpr=false;render();return}move(()=>{if(n===8&&buc(S.city))n-=2;else n--},'back')}function pick(v,b){if(lock)return;const key=A[n][3];S[key]=v;const answers=b.closest('.answers');if(answers)answers.querySelectorAll('.answer.sel').forEach(el=>el.classList.remove('sel'));b.classList.add('sel');const e=box.querySelector('.choice-error');if(e)e.textContent='';const forward=box.querySelector('.forward-arrow');if(forward)forward.disabled=false;try{saveDraft()}catch(_){}choiceForward()}
 let registrationSubmitted=false;
 function registrationPayload(){return {
  firstName:S.first,lastName:S.last,phone:S.phone,email:S.email,
@@ -473,31 +473,6 @@ document.documentElement.dataset.valid='ux-real';
 @media(prefers-reduced-motion:reduce){.step,.step.out,.step.out-down{animation:none!important}}
 </style>
 
-<script id="ux-auto-advance-final">
-const AUTO_ADVANCE_DELAY=850;
-let autoAdvanceTimer=null;
-function scheduleFieldAutoAdvance(){
- clearTimeout(autoAdvanceTimer);
- const f=document.getElementById('field'),x=A[n];
- if(!f||!x||lock)return;
- const r=fieldValidity(x,f.value);
- if(!r.ok)return;
- autoAdvanceTimer=setTimeout(async()=>{
-   if(lock||!f.isConnected||document.getElementById('field')!==f)return;
-   await next(false);
- },AUTO_ADVANCE_DELAY);
-}
-const ____renderAuto=render;
-render=function(){
- clearTimeout(autoAdvanceTimer);
- ____renderAuto();
- const f=document.getElementById('field');
- if(f){
-   f.addEventListener('input',scheduleFieldAutoAdvance);
-   f.addEventListener('change',scheduleFieldAutoAdvance);
- }
-};
-</script>
 </body></html>
 <style>
 .bg,#ytbg,
@@ -1024,80 +999,62 @@ const _successUX=success;success=async function(){label.textContent='SE SALVEAZ�
 /* Dataset-ul romania/localitati conține toate localitățile, nu doar municipii. */
 const _loadCitiesUX=loadRomaniaCities;loadRomaniaCities=async function(){await _loadCitiesUX();localitiesReady=RO_CITIES.length>10000;if(!localitiesReady)console.warn('Lista completă de localități nu este disponibilă încă')};
 </script>
-<style id="final-regression-fix">
-.final-success-actions{display:flex;gap:16px;align-items:center;justify-content:flex-start;width:100%;box-sizing:border-box}
-.final-success-actions .action-primary{margin:0!important;box-sizing:border-box;display:inline-flex!important;align-items:center;justify-content:center!important;white-space:nowrap!important;text-align:center!important}
-@media(min-width:761px){.final-success-actions .mobile-only{display:none!important}.final-success-actions{max-width:520px}.final-success-actions .action-primary{width:240px!important;min-width:240px!important;min-height:54px!important;padding:0 24px!important;border-radius:999px!important}}
-@media(max-width:760px){.final-success-actions .desktop-only{display:none!important}.final-success-actions{flex-direction:column;gap:12px;padding:0 18px 12px}.final-success-actions .action-primary{width:100%!important;min-width:0!important;min-height:58px!important;padding:14px 18px!important;border-radius:999px!important}}
+
+
+<style id="stable-navigation-city-final">
+.field-row{position:relative}
+.city-suggestions{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:80;background:#f1f0eb;border:1px solid rgba(22,35,37,.18);border-radius:16px;box-shadow:0 14px 34px rgba(22,35,37,.12);max-height:260px;overflow-y:auto;overscroll-behavior:contain;padding:6px;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:rgba(22,35,37,.28) transparent}
+.city-suggestion{width:100%;border:0;background:#f1f0eb;color:#162325;text-align:left;padding:13px 15px;border-radius:11px;font:500 16px/1.25 inherit;cursor:pointer;display:flex;justify-content:space-between;gap:16px}
+.city-suggestion span{color:#718082;font-size:13px;font-weight:400}
+.city-suggestion:hover,.city-suggestion:focus-visible,.city-suggestion.active{background:rgba(22,35,37,.07);outline:none}
+@media(max-width:760px){.city-suggestions{left:0;right:0;max-height:min(34dvh,240px);border-radius:14px}.city-suggestion{padding:14px 13px;font-size:16px}}
+.final-success-actions{width:100%;box-sizing:border-box}
+@media(min-width:761px){.final-success-actions.desktop-final{display:flex;justify-content:flex-start}.final-success-actions.desktop-final .action-primary{width:220px!important;min-width:220px!important;min-height:54px!important;margin:0!important}}
+@media(max-width:760px){.final-success-actions.mobile-final{display:flex;flex-direction:column;gap:12px;padding:0 18px 12px}.final-success-actions.mobile-final .action-primary{width:100%!important;min-width:0!important;min-height:58px!important;margin:0!important}}
 </style>
-<script>
-/* Final regression fix: one input pipeline, one swipe pipeline, one success action renderer. */
-const AUTO_FIELD_DELAY=700;
-let finalAutoTimer=null,finalPhoneSeq=0,finalSwipe=null;
-function currentFieldRule(){return A[n]||null}
-function basicFieldValid(x,v){
- v=String(v||'').trim(); if(!x||!v)return false;
- if(x[3]==='email')return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
- if(x[3]==='phone')return ph(v);
- if(x[3]==='city'&&typeof cityLookup==='function'&&localitiesReady)return !!cityLookup(v);
- return true;
+<script id="stable-navigation-city-final-script">
+let cityActiveIndex=-1;
+function cityMatches(q){
+ q=cityKey(q); if(!q||!localitiesReady)return [];
+ const starts=[],contains=[];
+ for(const c of RO_CITIES){const k=cityKey(c.name);if(k.startsWith(q))starts.push(c);else if(k.includes(q))contains.push(c);if(starts.length>=7)break}
+ return starts.concat(contains).slice(0,7);
 }
-async function livePhoneGate(f){
- const msg=document.getElementById('err'); const phone=normalizePhoneClient(f.value); const seq=++finalPhoneSeq;
- if(!/^07\d{8}$/.test(phone)){phoneDuplicate=false;if(msg)msg.textContent='';return false}
- if(msg)msg.textContent='Verificăm numărul…';
- try{
-  const r=await fetch('/api/check-phone',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone})});
-  const d=await r.json(); if(seq!==finalPhoneSeq||!f.isConnected)return false;
-  phoneDuplicate=!!d.exists; if(msg)msg.textContent=phoneDuplicate?'Acest număr de telefon este deja asociat unei rezervări.':'';
-  return !phoneDuplicate;
- }catch(_){if(seq===finalPhoneSeq&&msg)msg.textContent='Nu am putut verifica numărul acum. Încearcă din nou.';return false}
+function closeCitySuggestions(){const d=document.getElementById('citySuggestions');if(d)d.remove();cityActiveIndex=-1}
+function chooseCitySuggestion(c){const f=document.getElementById('field');if(!f)return;f.value=c.name;S.city=c.name;if(c.county)S.county=c.county;closeCitySuggestions();const e=document.getElementById('err');if(e)e.textContent='';f.focus({preventScroll:true})}
+function showCitySuggestions(f){
+ closeCitySuggestions();const matches=cityMatches(f.value);if(!matches.length)return;
+ const d=document.createElement('div');d.id='citySuggestions';d.className='city-suggestions';d.setAttribute('role','listbox');d.setAttribute('aria-label','Sugestii localități');
+ matches.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.className='city-suggestion';b.setAttribute('role','option');b.innerHTML=`${esc(c.name)}<span>${esc(c.county||'')}</span>`;b.addEventListener('pointerdown',e=>e.preventDefault());b.addEventListener('click',()=>chooseCitySuggestion(c));d.appendChild(b)});
+ f.closest('.field-row').appendChild(d);
 }
-function wireFinalField(){
- const f=document.getElementById('field'),x=currentFieldRule(); if(!f||!x)return;
- const handler=async e=>{
-  e.stopImmediatePropagation(); clearTimeout(finalAutoTimer); const v=f.value.trim();
-  if(x[3]==='phone'){
-   if(!ph(v)){phoneDuplicate=false;const m=document.getElementById('err');if(m)m.textContent=v?'Introdu un număr mobil din România.':'';return}
-   finalAutoTimer=setTimeout(async()=>{if(await livePhoneGate(f)){S[x[3]]=f.value.trim();if(f.isConnected&&!lock)next(false)}},320); return;
-  }
-  const valid=basicFieldValid(x,v); const m=document.getElementById('err'); if(m)m.textContent=(v&&!valid&&x[3]==='email')?'Introdu o adresă de e-mail validă.':'';
-  if(!valid)return;
-  finalAutoTimer=setTimeout(()=>{if(f.isConnected&&!lock&&basicFieldValid(x,f.value)){S[x[3]]=f.value.trim();next(false)}},AUTO_FIELD_DELAY);
- };
- f.addEventListener('input',handler,{capture:true}); f.addEventListener('change',handler,{capture:true});
+function wireCityAutocomplete(f){
+ f.removeAttribute('list');f.setAttribute('aria-autocomplete','list');f.setAttribute('aria-controls','citySuggestions');
+ f.addEventListener('input',()=>showCitySuggestions(f));
+ f.addEventListener('focus',()=>{if(f.value.trim())showCitySuggestions(f)});
+ f.addEventListener('keydown',e=>{const d=document.getElementById('citySuggestions');const items=d?[...d.querySelectorAll('.city-suggestion')]:[];if(!items.length)return;
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();cityActiveIndex=(cityActiveIndex+(e.key==='ArrowDown'?1:-1)+items.length)%items.length;items.forEach((x,i)=>x.classList.toggle('active',i===cityActiveIndex));items[cityActiveIndex].scrollIntoView({block:'nearest'});return}
+  if(e.key==='Enter'&&cityActiveIndex>=0){e.preventDefault();items[cityActiveIndex].click();}
+  if(e.key==='Escape')closeCitySuggestions();
+ });
+ f.addEventListener('blur',()=>setTimeout(closeCitySuggestions,120));
 }
-const finalRenderBase=render; render=function(){clearTimeout(finalAutoTimer);finalRenderBase();wireFinalField()};
 
-function finalSwipeStart(e){
+/* One authoritative mobile swipe path. It deliberately works when a gesture starts on an input. */
+let stableSwipe=null;
+function stableSwipeStart(e){
  if(!matchMedia('(max-width:760px)').matches||!flow.classList.contains('open')||!S.gdpr||n<0||n>=11||e.touches.length!==1)return;
- if(e.target.closest('button,input,label,a'))return; const t=e.touches[0];finalSwipe={x:t.clientX,y:t.clientY,t:Date.now(),step:box.querySelector('.step'),dy:0};
- e.stopImmediatePropagation();
+ if(e.target.closest('button,a'))return;const t=e.touches[0];stableSwipe={x:t.clientX,y:t.clientY,dy:0,step:box.querySelector('.step')};e.stopImmediatePropagation();
 }
-function finalSwipeMove(e){
- if(!finalSwipe||e.touches.length!==1)return; const t=e.touches[0],dx=t.clientX-finalSwipe.x,dy=t.clientY-finalSwipe.y;
- if(Math.abs(dy)<8||Math.abs(dy)<Math.abs(dx)*1.1)return; finalSwipe.dy=dy; const s=finalSwipe.step;if(s){s.style.transition='none';s.style.transform=`translate3d(0,${dy}px,0)`;s.style.opacity=String(Math.max(.72,1-Math.abs(dy)/900))} e.preventDefault();e.stopImmediatePropagation();
-}
-function finalSwipeEnd(e){
- if(!finalSwipe)return; const st=finalSwipe;finalSwipe=null;e.stopImmediatePropagation(); const s=st.step,dy=st.dy;
- if(s){s.style.transition='transform 180ms cubic-bezier(.22,1,.36,1),opacity 150ms ease';s.style.transform='translate3d(0,0,0)';s.style.opacity='1'}
- if(Math.abs(dy)<64)return;
- if(dy>0){back();return}
- const x=A[n],kind=x&&x[5],key=x&&x[3]; if(kind==='role'||kind==='q1'||kind==='q2'){if(S[key])move(()=>n++);return} next(false);
-}
-flow.addEventListener('touchstart',finalSwipeStart,{capture:true,passive:true});
-flow.addEventListener('touchmove',finalSwipeMove,{capture:true,passive:false});
-flow.addEventListener('touchend',finalSwipeEnd,{capture:true,passive:true});
-flow.addEventListener('touchcancel',finalSwipeEnd,{capture:true,passive:true});
+function stableSwipeMove(e){if(!stableSwipe||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-stableSwipe.x,dy=t.clientY-stableSwipe.y;if(Math.abs(dy)<10||Math.abs(dy)<Math.abs(dx)*1.15)return;stableSwipe.dy=dy;if(stableSwipe.step){stableSwipe.step.style.transition='none';stableSwipe.step.style.transform=`translate3d(0,${dy}px,0)`;stableSwipe.step.style.opacity=String(Math.max(.78,1-Math.abs(dy)/1000))}e.preventDefault();e.stopImmediatePropagation()}
+function stableSwipeEnd(e){if(!stableSwipe)return;const st=stableSwipe;stableSwipe=null;e.stopImmediatePropagation();if(st.step){st.step.style.transition='transform 180ms cubic-bezier(.22,1,.36,1),opacity 150ms ease';st.step.style.transform='translate3d(0,0,0)';st.step.style.opacity='1'}if(Math.abs(st.dy)<64)return;if(st.dy>0){back();return}const x=A[n],kind=x&&x[5],key=x&&x[3];if(kind==='role'||kind==='q1'||kind==='q2'){if(S[key])choiceForward();return}next(false)}
+flow.addEventListener('touchstart',stableSwipeStart,{capture:true,passive:true});flow.addEventListener('touchmove',stableSwipeMove,{capture:true,passive:false});flow.addEventListener('touchend',stableSwipeEnd,{capture:true,passive:true});flow.addEventListener('touchcancel',stableSwipeEnd,{capture:true,passive:true});
 
+/* Final actions: desktop has Close only; mobile keeps Calendar + Home. */
 success=async function(){
  label.textContent='SE SALVEAZĂ';count.textContent=(buc(S.city)?'10 / 10':'11 / 11');progressFill().style.width='100%';nav.innerHTML='';
  box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Finalizăm înscrierea.</h2><p>Salvăm datele și rezervăm locul tău la prezentare.</p></section>`;
- try{
-  const data=await submitRegistration();clearDraft();label.textContent='CONFIRMAT';const code=esc(data.participationCode||'');
-  box.innerHTML=`<section class="step"><small>ÎNSCRIERE CONFIRMATĂ</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentarea Avvero este rezervat.</p><div class="participation-card"><div class="pc-label">AVVERO × SNOO 2026</div><div class="pc-name">${esc(S.first)} ${esc(S.last)}</div><div class="pc-code">${code}</div><div class="pc-event">Vineri, 16 octombrie 2026 · 16:00<br>ROMEXPO, București<br>Cadoul tău surpriză te așteaptă la prezentare.</div></div></section>`;
-  const mobile=matchMedia('(max-width:760px)').matches;
-  nav.innerHTML=mobile?`<div class="final-success-actions"><button class="action-primary" onclick="addToCalendar('${code}')">ADAUGĂ ÎN CALENDAR</button><button class="action-primary mobile-only" onclick="location.href='/'">REVENIRE LA PAGINA PRINCIPALĂ</button></div>`:`<div class="final-success-actions"><button class="action-primary" onclick="addToCalendar('${code}')">ADAUGĂ ÎN CALENDAR</button><button class="action-primary desktop-only" onclick="location.reload()">ÎNCHIDE</button></div>`;
- }catch(e){label.textContent='NECONFIRMAT';const duplicate=e.code==='DUPLICATE_PHONE';box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>${duplicate?'Numărul este deja înscris.':'Înscrierea nu a fost salvată.'}</h2><p>${duplicate?'Există deja o participare asociată acestui număr de telefon.':'Verifică conexiunea și încearcă din nou.'}</p></section>`;nav.innerHTML=duplicate?'<button class="action-primary" onclick="location.reload()">ÎNCHIDE</button>':'<button class="action-primary" onclick="success()">REÎNCEARCĂ →</button>'}
+ try{const data=await submitRegistration();clearDraft();label.textContent='CONFIRMAT';const code=esc(data.participationCode||'');box.innerHTML=`<section class="step"><small>ÎNSCRIERE CONFIRMATĂ</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentarea Avvero este rezervat.</p><div class="participation-card"><div class="pc-label">AVVERO × SNOO 2026</div><div class="pc-name">${esc(S.first)} ${esc(S.last)}</div><div class="pc-code">${code}</div><div class="pc-event">Vineri, 16 octombrie 2026 · 16:00<br>ROMEXPO, București<br>Cadoul tău surpriză te așteaptă la prezentare.</div></div></section>`;const mobile=matchMedia('(max-width:760px)').matches;nav.innerHTML=mobile?`<div class="final-success-actions mobile-final"><button class="action-primary" onclick="addToCalendar('${code}')">ADAUGĂ ÎN CALENDAR</button><button class="action-primary" onclick="location.href='/'">REVENIRE LA PAGINA PRINCIPALĂ</button></div>`:`<div class="final-success-actions desktop-final"><button class="action-primary" onclick="location.reload()">ÎNCHIDE</button></div>`}
+ catch(e){label.textContent='NECONFIRMAT';const duplicate=e.code==='DUPLICATE_PHONE';box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>${duplicate?'Numărul este deja înscris.':'Înscrierea nu a fost salvată.'}</h2><p>${duplicate?'Există deja o participare asociată acestui număr de telefon.':'Verifică conexiunea și încearcă din nou.'}</p></section>`;nav.innerHTML=duplicate?'<button class="action-primary" onclick="location.reload()">ÎNCHIDE</button>':'<button class="action-primary" onclick="success()">REÎNCEARCĂ →</button>'}
 };
 </script>

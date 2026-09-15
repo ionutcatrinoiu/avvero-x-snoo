@@ -1,0 +1,14 @@
+const fs=require('fs'),assert=require('assert');
+const html=fs.readFileSync('index.html','utf8');
+assert(/class="step-nav"/.test(html),'step nav missing');
+assert(/aria-label="Înapoi"/.test(html),'back aria missing');
+assert(/aria-label="Înainte"/.test(html),'forward aria missing');
+assert(!/Glisează în sus/.test(html),'visible swipe hint must be removed');
+assert(/function checkPhoneAvailability/.test(html),'live phone check missing');
+assert(/\/api\/check-phone/.test(html),'phone endpoint call missing');
+assert(/Acest număr de telefon este deja asociat unei rezervări\./.test(html),'duplicate message missing');
+assert(/heroSwipe/.test(html),'hero swipe missing');
+assert(/prefers-reduced-motion/.test(html),'reduced motion support missing');
+assert(/aria-live="polite"/.test(html),'aria-live missing');
+assert(fs.existsSync('api/check-phone.js'),'check phone API missing');
+console.log('nav/accessibility/phone tests OK');

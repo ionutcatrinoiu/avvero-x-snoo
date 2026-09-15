@@ -17,6 +17,9 @@
     },
     "api/admin/gift.js": {
       "maxDuration": 10
+    },
+    "api/check-phone.js": {
+      "maxDuration": 10
     }
   },
   "headers": [

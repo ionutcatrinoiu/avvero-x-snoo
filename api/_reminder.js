@@ -20,20 +20,29 @@ function renderConfirmationEmail(r={}){
   const first=esc(r.firstName||'');const code=esc(r.participationCode||'');
   return shell(`<h1 style="font-size:34px;line-height:1.08;margin:20px 0 14px">Înscriere confirmată. Ne vedem la SNOO 2026!</h1><p style="font-size:17px;line-height:1.55;margin:0 0 22px">Bună${first?', '+first:''},</p><p style="font-size:17px;line-height:1.55">Îți mulțumim pentru înscriere la prezentarea Avvero:</p><p style="font-size:21px;line-height:1.35;font-weight:700">${esc(EVENT.title)}</p>${eventBox()}${code?`<p style="font-size:16px">Codul tău de participare: <strong style="letter-spacing:2px">${code}</strong></p>`:''}<p style="font-size:17px;line-height:1.55">Păstrează acest email. Codul de participare ne va ajuta să te identificăm la eveniment.</p><p style="font-size:17px;line-height:1.55;margin-top:24px">Și nu uita: am pregătit pentru tine un <strong>cadou surpriză Avvero</strong>.</p><p style="font-size:17px;line-height:1.55;margin-top:24px">Ne vedem la SNOO 2026!</p><p style="color:#697371;margin-top:32px">Echipa Avvero</p>`);
 }
+
+function renderReminderText(r={}){
+  const first=String(r.firstName||'').trim();const code=String(r.participationCode||'').trim();
+  return [`Bună${first?', '+first:''},`,'',`Îți reamintim că mâine te așteptăm la prezentarea Avvero:`,EVENT.title,'',`Data: vineri, 16 octombrie 2026`,`Ora: ${EVENT.time}`,`Locația: ${EVENT.location}`,code?`Codul tău de participare: ${code}`:'','',`Avem pregătit pentru tine și un cadou surpriză Avvero.`,'','Echipa Avvero'].filter(Boolean).join('\n');
+}
+function renderConfirmationText(r={}){
+  const first=String(r.firstName||'').trim();const code=String(r.participationCode||'').trim();
+  return [`Bună${first?', '+first:''},`,'',`Îți mulțumim pentru înscriere la prezentarea Avvero:`,EVENT.title,'',`Data: vineri, 16 octombrie 2026`,`Ora: ${EVENT.time}`,`Locația: ${EVENT.location}`,code?`Codul tău de participare: ${code}`:'','',`Păstrează acest email. Codul de participare ne va ajuta să te identificăm la eveniment.`,`Am pregătit pentru tine un cadou surpriză Avvero.`,'',`Ne vedem la SNOO 2026!`,'','Echipa Avvero'].filter(Boolean).join('\n');
+}
 function sender(){
   const email=String(process.env.SNOO_BREVO_SENDER_EMAIL||'').trim();
   if(!email)throw new Error('SNOO_BREVO_SENDER_EMAIL is not configured');
   return {name:'AVVERO x SNOO 2026',email};
 }
-async function sendWithBrevo({to,name='',subject,html,key}){
+async function sendWithBrevo({to,name='',subject,html,text,key}){
   if(!process.env.BREVO_API_KEY)throw new Error('BREVO_API_KEY is not configured');
-  const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{accept:'application/json','content-type':'application/json','api-key':process.env.BREVO_API_KEY},body:JSON.stringify({sender:sender(),to:[{email:to,name}],subject,htmlContent:html,headers:key?{'Idempotency-Key':key}:undefined,tags:['snoo-2026']})});
+  const response=await fetch('https://api.brevo.com/v3/smtp/email',{method:'POST',headers:{accept:'application/json','content-type':'application/json','api-key':process.env.BREVO_API_KEY},body:JSON.stringify({sender:sender(),replyTo:sender(),to:[{email:to,name}],subject,htmlContent:html,textContent:text,headers:key?{'Idempotency-Key':key}:undefined})});
   const data=await response.json().catch(()=>({}));
   if(!response.ok)throw new Error(data.message||data.code||`BREVO_HTTP_${response.status}`);
   return data;
 }
-async function sendReminder(r,to,key){return sendWithBrevo({to:to||r.email,name:[r.firstName,r.lastName].filter(Boolean).join(' '),subject:'Ne vedem mâine la SNOO 2026!',html:renderReminderEmail(r),key})}
-async function sendConfirmation(r,to,key){return sendWithBrevo({to:to||r.email,name:[r.firstName,r.lastName].filter(Boolean).join(' '),subject:'Înscriere confirmată la SNOO 2026',html:renderConfirmationEmail(r),key})}
+async function sendReminder(r,to,key){return sendWithBrevo({to:to||r.email,name:[r.firstName,r.lastName].filter(Boolean).join(' '),subject:'Ne vedem mâine la SNOO 2026!',html:renderReminderEmail(r),text:renderReminderText(r),key})}
+async function sendConfirmation(r,to,key){return sendWithBrevo({to:to||r.email,name:[r.firstName,r.lastName].filter(Boolean).join(' '),subject:'Înscriere confirmată la SNOO 2026',html:renderConfirmationEmail(r),text:renderConfirmationText(r),key})}
 async function sendRegistrationConfirmation(docRef){
   const {admin}=require('./admin/_firebase');
   const snap=await docRef.get();if(!snap.exists)return {skipped:true};const r=snap.data();
@@ -48,4 +57,4 @@ async function sendParticipantReminder(doc){
   catch(e){await doc.ref.update({reminderSent:false,reminderLastAttemptAt:admin.firestore.FieldValue.serverTimestamp(),reminderError:String(e.message||e).slice(0,500)}).catch(()=>{});return {error:String(e.message||e)}}
 }
 async function runReminderBatch(){const {getFirestore}=require('./admin/_firebase');const snap=await getFirestore().collection('snoo_registrations').get();let sent=0,skipped=0,errors=0;for(const doc of snap.docs){const r=await sendParticipantReminder(doc);if(r.sent)sent++;else if(r.error)errors++;else skipped++}return {total:snap.size,sent,skipped,errors}}
-module.exports={localYmd,dayBefore,isReminderDay,reminderKey,confirmationKey,renderReminderEmail,renderConfirmationEmail,sendWithBrevo,sendReminder,sendConfirmation,sendRegistrationConfirmation,sendParticipantReminder,runReminderBatch};
+module.exports={localYmd,dayBefore,isReminderDay,reminderKey,confirmationKey,renderReminderEmail,renderConfirmationEmail,renderReminderText,renderConfirmationText,sendWithBrevo,sendReminder,sendConfirmation,sendRegistrationConfirmation,sendParticipantReminder,runReminderBatch};

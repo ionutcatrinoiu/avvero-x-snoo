@@ -49,3 +49,12 @@ test('email branding uses secondary logo, AVVERO x SNOO 2026 sender name, and fi
   assert.match(reminder,/name:'AVVERO x SNOO 2026'/);
   assert.match(event,/Managementul miopiei dincolo de lentilă\. Cum educăm o generație să vadă mai bine/);
 });
+
+test('transactional Brevo payload includes reply-to and plain-text alternative without marketing tags',()=>{
+  const s=fs.readFileSync(path.join(root,'api','_reminder.js'),'utf8');
+  assert.match(s,/replyTo:sender\(\)/);
+  assert.match(s,/textContent:text/);
+  assert.doesNotMatch(s,/tags:\['snoo-2026'\]/);
+  assert.match(s,/function renderConfirmationText/);
+  assert.match(s,/function renderReminderText/);
+});

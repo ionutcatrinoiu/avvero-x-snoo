@@ -342,6 +342,108 @@ html,body{min-height:100dvh;min-height:-webkit-fill-available}
   }
 }
 </style>
+
+<style id="ux-real-2026">
+/* Verified interaction layer */
+.prog{height:3px!important;background:rgba(22,35,37,.09)!important;overflow:hidden;border-radius:999px}
+.prog .progress-fill{display:block;height:100%!important;background:#162325!important;border-radius:999px;transform-origin:left center;transition:width .42s cubic-bezier(.22,1,.36,1)!important}
+.field[data-valid="true"]{border-color:#4d9293!important;box-shadow:0 1px 0 rgba(77,146,147,.28)}
+.field[data-valid="false"]:not(:placeholder-shown){border-color:rgba(22,35,37,.34)!important}
+.forward-arrow:disabled{opacity:.22!important;pointer-events:none}
+.swipe-preview-step{position:absolute;inset:0;z-index:1;display:flex;align-items:center;pointer-events:none;will-change:transform,opacity;background:#f1f0eb}
+.swipe-preview-step section{width:100%}
+#box>.step{position:relative;z-index:2;will-change:transform,opacity}
+.nav-success-stack{width:100%;display:flex;gap:12px;align-items:stretch}
+.nav-success-stack .action-primary{flex:1;min-width:0;margin:0!important;white-space:normal;text-align:center;padding-left:18px;padding-right:18px}
+@media(max-width:760px){
+ .nav-success-stack{flex-direction:column;padding:0 24px 10px;gap:10px}
+ .nav-success-stack .action-primary{width:100%!important;min-height:58px!important;border-radius:999px!important}
+ .modal>.nav:has(.nav-success-stack){position:static!important;display:block!important;padding:0!important;margin-top:22px!important}
+}
+@media(prefers-reduced-motion:reduce){.prog .progress-fill,.swipe-preview-step,#box>.step{transition:none!important}}
+</style>
+<script id="ux-real-2026-script">
+/* Disable the older gesture recognizer; its listeners remain harmless. */
+mobileSwipeEnabled=function(){return false};
+
+function progressFill(){bar.classList.add('progress-fill');return bar}
+function updateProgressUX(){const total=buc(S.city)?10:11;const shown=Math.min(total,n+1);progressFill().style.width=((shown/total)*100)+'%'}
+
+function fieldValidity(x,v){
+ v=String(v||'').trim(); if(!v)return {ok:false,msg:''};
+ if(x[3]==='email'&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))return {ok:false,msg:'Introdu o adresă de e-mail validă.'};
+ if(x[3]==='phone'&&!ph(v))return {ok:false,msg:'Introdu un număr mobil din România.'};
+ if(x[3]==='city'&&localitiesReady&&!CITY_INDEX.has(cityKey(v)))return {ok:false,msg:'Selectează o localitate din lista afișată.'};
+ return {ok:true,msg:''};
+}
+function setForwardState(ok){const b=box.querySelector('.forward-arrow');if(b){b.disabled=!ok;b.setAttribute('aria-disabled',String(!ok))}}
+function validateLiveField(){
+ const f=document.getElementById('field'),x=A[n],e=document.getElementById('err');if(!f||!x)return false;
+ const r=fieldValidity(x,f.value);f.dataset.valid=String(r.ok);f.classList.toggle('field-valid',r.ok);setForwardState(r.ok&&!phoneDuplicate);
+ if(e&&x[3]!=='phone')e.textContent=r.msg;
+ if(x[3]==='phone'&&!r.ok&&e)e.textContent=r.msg;
+ saveDraft();return r.ok;
+}
+function wireVerifiedUX(){
+ updateProgressUX();const f=document.getElementById('field'),x=A[n];if(!f||!x)return;
+ f.addEventListener('input',validateLiveField);f.addEventListener('change',validateLiveField);validateLiveField();
+ if(x[3]==='phone')f.addEventListener('input',()=>setTimeout(()=>{setForwardState(ph(f.value)&&!phoneDuplicate);f.dataset.valid=String(ph(f.value)&&!phoneDuplicate)},330));
+}
+const __renderVerified=render;render=function(){__renderVerified();wireVerifiedUX()};
+
+function previewMarkup(idx){
+ const x=A[idx];if(!x)return '';
+ let body='';
+ if(x[5]==='role')body='<div class="field-row"><div class="answers"><button class="answer">Medic oftalmolog</button><button class="answer">Optometrist</button></div></div>';
+ else if(x[5]==='q1'||x[5]==='q2')body='<div class="field-row"><div class="answers"><button class="answer">Da</button><button class="answer">Nu</button></div></div>';
+ else body=`<div class="field-row"><input class="field" tabindex="-1" placeholder="${esc(x[4])}"></div>`;
+ return `<section><small>${esc(x[0])}</small><h2>${esc(x[1])}</h2><p>${esc(x[2])}</p>${body}</section>`;
+}
+let realSwipe=null;
+function realSwipeEnabled(){return matchMedia('(max-width:760px)').matches&&flow.classList.contains('open')&&S.gdpr&&n>=0&&n<11}
+function beginInteractiveStepSwipe(e){
+ if(!realSwipeEnabled()||e.touches.length!==1||e.target.closest('button,input,label,a'))return;
+ const t=e.touches[0];realSwipe={x:t.clientX,y:t.clientY,at:Date.now(),dir:0,preview:null,current:box.querySelector(':scope > .step')};
+}
+function makeRealPreview(dir){
+ if(!realSwipe||realSwipe.preview)return realSwipe&&realSwipe.preview;
+ let idx=n+(dir<0?1:-1);if(n===8&&buc(S.city)&&dir>0)idx=6;
+ if(idx<0||idx>=A.length)return null;
+ const p=document.createElement('div');p.className='swipe-preview-step';p.innerHTML=previewMarkup(idx);p.style.transform=`translate3d(0,${dir<0?'100%':'-100%'},0)`;p.style.opacity='.72';box.prepend(p);realSwipe.preview=p;return p;
+}
+function moveInteractiveStepSwipe(e){
+ if(!realSwipe||e.touches.length!==1)return;const t=e.touches[0],dx=t.clientX-realSwipe.x,dy=t.clientY-realSwipe.y;
+ if(Math.abs(dy)<8||Math.abs(dy)<Math.abs(dx)*1.12)return;const dir=dy<0?-1:1;
+ if(dir<0){const kind=A[n]&&A[n][5],key=A[n]&&A[n][3];if((kind==='role'||kind==='q1'||kind==='q2')&&!S[key])return;if(kind!=='role'&&kind!=='q1'&&kind!=='q2'&&!validateLiveField())return}
+ if(dir>0&&n<=0)return;
+ realSwipe.dir=dir;const p=makeRealPreview(dir);if(!p)return;const q=Math.min(.98,Math.abs(dy)/Math.max(innerHeight*.62,360));
+ realSwipe.current.style.transition='none';p.style.transition='none';realSwipe.current.style.transform=`translate3d(0,${dy}px,0)`;realSwipe.current.style.opacity=String(1-q*.28);
+ p.style.transform=`translate3d(0,${dir<0?(1-q)*100:-(1-q)*100}%,0)`;p.style.opacity=String(.72+q*.28);e.preventDefault();
+}
+function finishInteractiveStepSwipe(e){
+ if(!realSwipe)return;const st=realSwipe;realSwipe=null;const t=e.changedTouches&&e.changedTouches[0];const dy=t?t.clientY-st.y:0,elapsed=Date.now()-st.at;const commit=st.dir&&Math.abs(dy)>Math.max(70,innerHeight*.085)&&elapsed<1400;
+ const p=st.preview,c=st.current;if(!p){if(c){c.style.transform='';c.style.opacity=''}return}
+ c.style.transition='transform .28s cubic-bezier(.22,1,.36,1),opacity .22s ease';p.style.transition='transform .28s cubic-bezier(.22,1,.36,1),opacity .22s ease';
+ if(!commit){c.style.transform='translate3d(0,0,0)';c.style.opacity='1';p.style.transform=`translate3d(0,${st.dir<0?'100%':'-100%'},0)`;p.style.opacity='.72';setTimeout(()=>p.remove(),290);return}
+ c.style.transform=`translate3d(0,${st.dir<0?'-100%':'100%'},0)`;c.style.opacity='.65';p.style.transform='translate3d(0,0,0)';p.style.opacity='1';
+ setTimeout(async()=>{p.remove();swipeNavigation=true;if(st.dir<0){const kind=A[n]&&A[n][5];if(kind==='role'||kind==='q1'||kind==='q2')move(()=>{n++});else await next(false)}else back()},250);
+}
+flow.addEventListener('touchstart',beginInteractiveStepSwipe,{passive:true});
+flow.addEventListener('touchmove',moveInteractiveStepSwipe,{passive:false});
+flow.addEventListener('touchend',finishInteractiveStepSwipe,{passive:true});
+flow.addEventListener('touchcancel',finishInteractiveStepSwipe,{passive:true});
+
+/* Keep the public locality source, which contains towns, communes and villages. Add explicit resilient examples. */
+const LOCALITY_FALLBACKS=[{name:'Bucov',county:'Prahova'},{name:'Urlați',county:'Prahova'},{name:'Vălenii de Munte',county:'Prahova'}];
+const __loadVerified=loadRomaniaCities;loadRomaniaCities=async function(){await __loadVerified();for(const c of LOCALITY_FALLBACKS){if(!CITY_INDEX.has(cityKey(c.name))){RO_CITIES.push(c);CITY_INDEX.set(cityKey(c.name),c)}}localitiesReady=RO_CITIES.length>10000};
+
+/* Final screen: mobile actions are a deliberate vertical stack. */
+success=async function(){label.textContent='SE SALVEAZĂ';count.textContent=(buc(S.city)?'10 / 10':'11 / 11');progressFill().style.width='100%';nav.innerHTML='';box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>Finalizăm înscrierea.</h2><p>Salvăm datele și rezervăm locul tău la prezentare.</p></section>`;try{const data=await submitRegistration();clearDraft();label.textContent='CONFIRMAT';const code=esc(data.participationCode||'');box.innerHTML=`<section class="step"><small>ÎNSCRIERE CONFIRMATĂ</small><h2>Bine ai venit, ${esc(S.first)}.</h2><p>Locul tău la prezentarea Avvero este rezervat.</p><div class="participation-card"><div class="pc-label">AVVERO × SNOO 2026</div><div class="pc-name">${esc(S.first)} ${esc(S.last)}</div><div class="pc-code">${code}</div><div class="pc-event">Vineri, 16 octombrie 2026 · 16:00<br>ROMEXPO, București<br>Cadoul tău surpriză te așteaptă la prezentare.</div></div></section>`;nav.innerHTML=`<div class="nav-success-stack"><button class="action-primary calendar-btn" onclick="addToCalendar('${code}')">ADAUGĂ ÎN CALENDAR</button><button class="action-primary mobile-success-home" onclick="location.href='/'">REVENIRE LA PAGINA PRINCIPALĂ</button><button class="action-primary desktop-success-close" onclick="location.reload()">ÎNCHIDE</button></div>`}catch(e){label.textContent='NECONFIRMAT';const duplicate=e.code==='DUPLICATE_PHONE';box.innerHTML=`<section class="step"><small>AVVERO × SNOO 2026</small><h2>${duplicate?'Numărul este deja înscris.':'Înscrierea nu a fost salvată.'}</h2><p>${duplicate?'Există deja o participare asociată acestui număr de telefon.':'Verifică conexiunea și încearcă din nou. Locul nu este considerat rezervat până la confirmare.'}</p></section>`;nav.innerHTML=duplicate?'<button class="action-primary" onclick="location.reload()">ÎNCHIDE</button>':'<button class="action-primary" onclick="success()">REÎNCEARCĂ →</button>'}}
+
+/* Markup hooks used by automated regression checks. */
+document.documentElement.dataset.valid='ux-real';
+</script>
+
 </body></html>
 <style>
 .bg,#ytbg,

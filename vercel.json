@@ -29,6 +29,12 @@
     },
     "api/admin/confirmation-test.js": {
       "maxDuration": 15
+    },
+    "api/admin/confirmation-send.js": {
+      "maxDuration": 15
+    },
+    "api/admin/confirmation-recover.js": {
+      "maxDuration": 30
     }
   },
   "headers": [
@@ -38,6 +44,15 @@
         {
           "key": "Cache-Control",
           "value": "no-store"
+        }
+      ]
+    },
+    {
+      "source": "/admin/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
         }
       ]
     }

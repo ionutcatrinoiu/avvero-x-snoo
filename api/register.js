@@ -20,8 +20,10 @@ module.exports=async function handler(req,res){
  if(req.method!=='POST')return res.status(405).json({error:'METHOD_NOT_ALLOWED'});
  try{
   const b=req.body||{};
-  const required=['firstName','lastName','phone','opticalStore','role','city','streetAddress','usesMyopiaManagement','knowsMyoless'];
+  const required=['firstName','lastName','phone','email','opticalStore','role','city','streetAddress','usesMyopiaManagement','knowsMyoless'];
   if(!b.gdprConsent||required.some(k=>!String(b[k]??'').trim()))return res.status(400).json({error:'MISSING_FIELDS'});
+  const email=String(b.email||'').trim().toLowerCase();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return res.status(400).json({error:'INVALID_EMAIL'});
   const phone=normalizePhone(b.phone);
   const store=db();
   const phoneRef=store.collection('snoo_phone_keys').doc(phone);
@@ -38,7 +40,7 @@ module.exports=async function handler(req,res){
    tx.set(phoneRef,{registrationId:regRef.id,createdAt:now});
    tx.set(regRef,{
     participationCode,firstName:String(b.firstName).trim(),lastName:String(b.lastName).trim(),
-    phoneNormalized:phone,email:b.email?String(b.email).trim().toLowerCase():null,
+    phoneNormalized:phone,email,
     opticalStore:String(b.opticalStore).trim(),role:String(b.role).trim(),
     city:String(b.city).trim(),county:String(b.county||'').trim(),
     streetAddress:String(b.streetAddress).trim(),

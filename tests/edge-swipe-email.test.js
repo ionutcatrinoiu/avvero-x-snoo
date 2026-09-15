@@ -1,0 +1,15 @@
+const fs=require('fs'),assert=require('assert');
+const html=fs.readFileSync('index.html','utf8');
+const register=fs.readFileSync('api/register.js','utf8');
+assert(/viewport-fit=cover/.test(html),'viewport-fit=cover missing');
+assert(/100dvh/.test(html),'dynamic viewport height missing');
+assert(/safe-area-inset-top/.test(html),'safe area top handling missing');
+assert(/safe-area-inset-bottom/.test(html),'safe area bottom handling missing');
+assert(/Adresa ta de e-mail/.test(html)&&!/Opțional\. O poți lăsa necompletată\./.test(html),'email still optional in UI');
+assert(/Introdu adresa ta de e-mail pentru a continua\./.test(html),'client email required validation missing');
+assert(/required=.*email|['\"]email['\"]/.test(register),'server email required validation missing');
+assert(/INVALID_EMAIL/.test(register),'server email format validation missing');
+assert(/translate3d\(0,\$\{dy\}px,0\)/.test(html),'form swipe is not 1:1 with finger');
+assert(/hero.*touchmove|hero\.addEventListener\('touchmove'/.test(html),'hero interactive touchmove missing');
+assert(/setProperty\('--hero-swipe-progress'/.test(html)||/clipPath=.*inset/.test(html),'hero progressive reveal missing');
+console.log('edge/swipe/email tests OK');

@@ -23,7 +23,8 @@ assert.strictEqual(reminder.reminderKey('abc'),'snoo-2026-reminder/abc/2026-10-1
 const v=JSON.parse(fs.readFileSync(path.join(root,'vercel.json'),'utf8'));
 assert(v.crons&&v.crons.some(x=>x.path==='/api/cron/reminders'));
 const pkg=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8'));
-assert(pkg.dependencies&&pkg.dependencies.resend,'resend dependency missing');
+assert(!pkg.dependencies.resend,'resend dependency should be removed');
+assert(fs.readFileSync(path.join(root,'api/_reminder.js'),'utf8').includes('BREVO_API_KEY'),'Brevo integration missing');
 const admin=fs.readFileSync(path.join(root,'admin/index.html'),'utf8');
 assert(admin.includes('Trimite reminder de test'));
 assert(admin.includes('Reminder'));

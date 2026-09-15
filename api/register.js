@@ -1,4 +1,5 @@
 const admin=require('firebase-admin');
+const {sendRegistrationConfirmation}=require('./_reminder');
 
 function db(){
  if(!admin.apps.length){
@@ -45,9 +46,10 @@ module.exports=async function handler(req,res){
     city:String(b.city).trim(),county:String(b.county||'').trim(),
     streetAddress:String(b.streetAddress).trim(),
     usesMyopiaManagement:String(b.usesMyopiaManagement),knowsMyoless:String(b.knowsMyoless),
-    gdprConsent:true,gdprConsentAt:now,event:'SNOO 2026',giftDelivered:false,registeredAt:now
+    gdprConsent:true,gdprConsentAt:now,event:'SNOO 2026',giftDelivered:false,confirmationEmailSent:false,reminderSent:false,registeredAt:now
    });
   });
+  await sendRegistrationConfirmation(regRef).catch(e=>console.error('confirmation email failed',e.message));
   return res.status(201).json({ok:true,participationCode});
  }catch(e){
   if(e.message==='DUPLICATE_PHONE')return res.status(409).json({error:'DUPLICATE_PHONE'});

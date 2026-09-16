@@ -29,9 +29,6 @@
     },
     "api/admin/confirmation-test.js": {
       "maxDuration": 15
-    },
-    "api/admin/confirmation-send.js": {
-      "maxDuration": 15
     }
   },
   "headers": [

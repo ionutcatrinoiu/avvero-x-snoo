@@ -5,7 +5,7 @@ const path=require('path');
 const root=path.join(__dirname,'..');
 
 test('email module uses Brevo transactional API and no Resend dependency',()=>{
-  const p=path.join(root,'lib','reminder.js');
+  const p=path.join(root,'api','_reminder.js');
   const s=fs.readFileSync(p,'utf8');
   assert.match(s,/api\.brevo\.com\/v3\/smtp\/email/);
   assert.match(s,/BREVO_API_KEY/);
@@ -13,7 +13,7 @@ test('email module uses Brevo transactional API and no Resend dependency',()=>{
 });
 
 test('confirmation email exists, includes Avvero logo and participation code',()=>{
-  const s=fs.readFileSync(path.join(root,'lib','reminder.js'),'utf8');
+  const s=fs.readFileSync(path.join(root,'api','_reminder.js'),'utf8');
   assert.match(s,/renderConfirmationEmail/);
   assert.match(s,/avvero-logo-secundar\.png/);
   assert.match(s,/participationCode/);
@@ -43,15 +43,15 @@ test('package no longer depends on resend',()=>{
 });
 
 test('email branding uses secondary logo, AVVERO x SNOO 2026 sender name, and final event title punctuation',()=>{
-  const reminder=fs.readFileSync(path.join(root,'lib','reminder.js'),'utf8');
-  const event=fs.readFileSync(path.join(root,'lib','event.js'),'utf8');
+  const reminder=fs.readFileSync(path.join(root,'api','_reminder.js'),'utf8');
+  const event=fs.readFileSync(path.join(root,'api','_event.js'),'utf8');
   assert.match(reminder,/avvero-logo-secundar\.png/);
   assert.match(reminder,/name:'AVVERO x SNOO 2026'/);
   assert.match(event,/Managementul miopiei dincolo de lentilă\. Cum educăm o generație să vadă mai bine/);
 });
 
 test('transactional Brevo payload includes reply-to and plain-text alternative without marketing tags',()=>{
-  const s=fs.readFileSync(path.join(root,'lib','reminder.js'),'utf8');
+  const s=fs.readFileSync(path.join(root,'api','_reminder.js'),'utf8');
   assert.match(s,/replyTo:sender\(\)/);
   assert.match(s,/textContent:text/);
   assert.doesNotMatch(s,/tags:\['snoo-2026'\]/);

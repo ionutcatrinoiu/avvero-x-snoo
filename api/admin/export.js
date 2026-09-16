@@ -1,5 +1,5 @@
 const XLSX=require('xlsx');
-const {readSession,noStore}=require('../../lib/auth');
+const {readSession,noStore}=require('./_auth');
 
 function splitDateTime(v){
  const d=v?new Date(v):null;

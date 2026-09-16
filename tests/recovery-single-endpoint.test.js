@@ -1,0 +1,20 @@
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('fs');
+const path=require('path');
+const root=path.resolve(__dirname,'..');
+const read=p=>fs.readFileSync(path.join(root,p),'utf8');
+test('confirmation recovery reuses the already deployed confirmation-test endpoint',()=>{
+  assert.equal(fs.existsSync(path.join(root,'api/admin/confirmation-send.js')),false);
+  assert.equal(fs.existsSync(path.join(root,'api/admin/confirmation-recover.js')),false);
+  const api=read('api/admin/confirmation-test.js');
+  assert.match(api,/action\s*===\s*['"]send['"]/);
+  assert.match(api,/action\s*===\s*['"]recover['"]/);
+  const html=read('admin/index.html');
+  assert.doesNotMatch(html,/\/api\/admin\/confirmation-send/);
+  assert.doesNotMatch(html,/\/api\/admin\/confirmation-recover/);
+  assert.match(html,/\/api\/admin\/confirmation-test/);
+  const cfg=JSON.parse(read('vercel.json'));
+  assert.equal(cfg.functions['api/admin/confirmation-send.js'],undefined);
+  assert.equal(cfg.functions['api/admin/confirmation-recover.js'],undefined);
+});

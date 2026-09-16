@@ -1,5 +1,5 @@
 const admin=require('firebase-admin');
-const {sendRegistrationConfirmation}=require('./_reminder');
+const {sendRegistrationConfirmation}=require('../lib/reminder');
 
 function db(){
  if(!admin.apps.length){

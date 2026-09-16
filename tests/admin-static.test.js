@@ -3,7 +3,7 @@ const assert=require('node:assert/strict');
 const fs=require('fs');
 
 test('admin auth and protected API files exist',()=>{
- for(const f of ['api/admin/_auth.js','api/admin/login.js','api/admin/me.js','api/admin/logout.js','api/admin/data.js','api/admin/gift.js']) assert.equal(fs.existsSync(f),true,`${f} missing`);
+ for(const f of ['lib/auth.js','api/admin/login.js','api/admin/me.js','api/admin/logout.js','api/admin/data.js','api/admin/gift.js']) assert.equal(fs.existsSync(f),true,`${f} missing`);
 });
 
 test('admin UI contains required controls and no secrets',()=>{

@@ -1,6 +1,6 @@
-const {readSession,noStore}=require('./_auth');
-const {getFirestore}=require('./_firebase');
-const {sendRegistrationConfirmation}=require('../_reminder');
+const {readSession,noStore}=require('../../lib/auth');
+const {getFirestore}=require('../../lib/firebase');
+const {sendRegistrationConfirmation}=require('../../lib/reminder');
 const BATCH_LIMIT=50;
 
 module.exports=async(req,res)=>{

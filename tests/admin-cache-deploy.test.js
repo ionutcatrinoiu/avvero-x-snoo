@@ -11,5 +11,4 @@ test('deployment disables cache for admin UI and configures recovery endpoints',
   assert.ok(adminHeader,'admin cache header missing');
   assert.ok((adminHeader.headers||[]).some(h=>h.key.toLowerCase()==='cache-control' && /no-store/.test(h.value)),'admin must be no-store');
   assert.ok(cfg.functions['api/admin/confirmation-send.js'],'confirmation-send function config missing');
-  assert.ok(cfg.functions['api/admin/confirmation-recover.js'],'confirmation-recover function config missing');
 });

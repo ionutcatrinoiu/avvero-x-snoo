@@ -32,9 +32,6 @@
     },
     "api/admin/confirmation-send.js": {
       "maxDuration": 15
-    },
-    "api/admin/confirmation-recover.js": {
-      "maxDuration": 30
     }
   },
   "headers": [

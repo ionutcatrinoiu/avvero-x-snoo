@@ -5,17 +5,15 @@ const path=require('path');
 const root=path.join(__dirname,'..');
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 
-test('admin has protected individual and bulk confirmation recovery endpoints',()=>{
+test('admin has one protected confirmation endpoint for individual and bulk recovery',()=>{
   assert.equal(fs.existsSync(path.join(root,'api/admin/confirmation-send.js')),true);
-  assert.equal(fs.existsSync(path.join(root,'api/admin/confirmation-recover.js')),true);
-  const one=read('api/admin/confirmation-send.js');
-  const bulk=read('api/admin/confirmation-recover.js');
-  assert.match(one,/readSession/);
-  assert.match(one,/sendRegistrationConfirmation/);
-  assert.match(bulk,/readSession/);
-  assert.match(bulk,/sendRegistrationConfirmation/);
-  assert.match(bulk,/confirmationEmailSent/);
-  assert.match(bulk,/email/);
+  assert.equal(fs.existsSync(path.join(root,'api/admin/confirmation-recover.js')),false);
+  const endpoint=read('api/admin/confirmation-send.js');
+  assert.match(endpoint,/readSession/);
+  assert.match(endpoint,/sendRegistrationConfirmation/);
+  assert.match(endpoint,/body\.bulk===true/);
+  assert.match(endpoint,/confirmationEmailSent/);
+  assert.match(endpoint,/email/);
 });
 
 test('admin dashboard exposes pending count, bulk recovery, and individual send action',()=>{
@@ -24,7 +22,8 @@ test('admin dashboard exposes pending count, bulk recovery, and individual send 
   assert.match(html,/Trimite confirmările restante/);
   assert.match(html,/confirmationPending/);
   assert.match(html,/confirmation-send/);
-  assert.match(html,/confirmation-recover/);
+  assert.doesNotMatch(html,/confirmation-recover/);
+  assert.match(html,/bulk:true/);
   assert.match(html,/Trimite confirmarea/);
 });
 
